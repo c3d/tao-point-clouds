@@ -1,0 +1,19 @@
+// Point Cloud module definition
+//
+// This module defines commands to create point clouds: read coordinates
+// of many points from a file and display them.
+//
+// Copyright 2012 Taodyne
+
+module_description
+    id "892013DA-2A68-40FE-9862-2583C48252B6"
+    name "Point clouds"
+    description "Creates point clouds."
+    import_name "PointCloud"
+    author "Taodyne SAS"
+    website "http://www.taodyne.com"
+    version 1.0
+
+module_description "fr",
+    name "Nuages de points"
+    description "Permet de créer des nuages de points."
