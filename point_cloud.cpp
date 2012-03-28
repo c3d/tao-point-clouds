@@ -22,7 +22,7 @@
 
 #include "tao/tao_gl.h"
 #include "point_cloud.h"
-#include <stdlib.h>
+#include "basics.h"      // From XLR
 
 
 using namespace XL;
@@ -209,8 +209,7 @@ float PointCloud::random01()
 //   Return random float in [0.0, 1.0]
 // ----------------------------------------------------------------------------
 {
-    float r = float(random()) / float(unsigned(0xFFFFFFFF));
-    return r;
+    return float(xl_random(0.0, 1.0));
 }
 
 
