@@ -36,9 +36,15 @@ PointCloud::PointCloud(text name)
 // ----------------------------------------------------------------------------
 //   Create a point cloud
 // ----------------------------------------------------------------------------
-    : name(name)
+    : name(name), useVboIfAvailable(true), vbo(0), context(NULL)
 {
-    debug() << "Created\n";
+    IFTRACE(pointcloud)
+        debug() << "Creation\n";
+    if (useVbo())
+    {
+        context = QGLContext::currentContext();
+        genBuffer();
+    }
 }
 
 
@@ -46,7 +52,28 @@ PointCloud::~PointCloud()
 // ----------------------------------------------------------------------------
 //    Delete a point cloud
 // ----------------------------------------------------------------------------
-{}
+{
+    IFTRACE(pointcloud)
+        debug() << "Destroyed\n";
+    if (vbo)
+    {
+        IFTRACE(pointcloud)
+            debug() << "Deleting VBO id: " << vbo << "\n";
+        glDeleteBuffers(1, &vbo);
+        vbo = 0;
+    }
+}
+
+
+void PointCloud::genBuffer()
+// ----------------------------------------------------------------------------
+//   Allocate new VBO
+// ----------------------------------------------------------------------------
+{
+    glGenBuffers(1, &vbo);
+    IFTRACE(pointcloud)
+        debug() << "Will use VBO id: " << vbo << "\n";
+}
 
 
 void PointCloud::addPoint(float x, float y, float z)
@@ -55,6 +82,24 @@ void PointCloud::addPoint(float x, float y, float z)
 // ----------------------------------------------------------------------------
 {
     points.push_back(Point(x, y, z));
+}
+
+
+void PointCloud::pointsChanged()
+// ----------------------------------------------------------------------------
+//   Take into account a change in point data
+// ----------------------------------------------------------------------------
+{
+    if (!useVbo())
+    {
+        // Nothing to do since point data are reloaded on each draw
+        return;
+    }
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, points.size()*sizeof(Point), &points[0].x,
+                 GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 
@@ -70,9 +115,54 @@ void PointCloud::Draw()
     tao->SetFillColor();
 
     glEnableClientState(GL_VERTEX_ARRAY);
-    glVertexPointer(3, GL_FLOAT, sizeof(Point), &points[0].x);
+
+    if (useVbo())
+    {
+        checkGLContext();
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glVertexPointer(3, GL_FLOAT, sizeof(Point), 0);
+    }
+    else
+    {
+        glVertexPointer(3, GL_FLOAT, sizeof(Point), &points[0].x);
+    }
+
     glDrawArrays(GL_POINTS, 0, points.size());
+
+    if (useVbo())
+    {
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+    }
+
     glDisableClientState(GL_VERTEX_ARRAY);
+}
+
+
+bool PointCloud::useVbo()
+// ----------------------------------------------------------------------------
+//   Should we use Vertex Buffer Objects?
+// ----------------------------------------------------------------------------
+{
+    return (useVboIfAvailable && vboSupported);
+}
+
+
+void PointCloud::checkGLContext()
+// ----------------------------------------------------------------------------
+//   Do what's needed if GL context has changed
+// ----------------------------------------------------------------------------
+{
+    if (QGLContext::currentContext() != context)
+    {
+        IFTRACE(pointcloud)
+            debug() << "GL context changed\n";
+
+        // Re-create VBO and copy data
+        genBuffer();
+        pointsChanged();
+
+        context = QGLContext::currentContext();
+    }
 }
 
 
@@ -206,10 +296,14 @@ XL::Name_p PointCloud::cloud_random(XL::Tree_p /* self */, text name,
         IFTRACE(pointcloud)
             cloud->debug() << "Points: " << cloud->points.size()
                            << " requested: " << wanted << "\n";
-        while (cloud->points.size() > wanted)
-            cloud->points.pop_back();
-        for (unsigned count = cloud->points.size(); count < wanted; ++count)
-            cloud->addPoint(random01(), random01(), random01());
+        if (cloud->points.size() != wanted)
+        {
+            while (cloud->points.size() > wanted)
+                cloud->points.pop_back();
+            for (unsigned i = cloud->points.size(); i < wanted; ++i)
+                cloud->addPoint(random01(), random01(), random01());
+            cloud->pointsChanged();
+        }
     }
 
     tao->scheduleRender(PointCloud::render_callback, cloud);

@@ -24,6 +24,7 @@
 
 #include "tree.h"
 #include "tao/module_api.h"
+#include <qgl.h>
 #include <map>
 
 
@@ -45,6 +46,7 @@ public:
 
 public:
     void                        addPoint(float x, float y, float z);
+    void                        pointsChanged();
 
 public:
     static void                 init(const Tao::ModuleApi *api);
@@ -59,10 +61,16 @@ public:
 protected:
     text                        name;
     point_vec                   points;
+    bool                        useVboIfAvailable;
+    GLuint                      vbo;
+    const QGLContext *          context;
 
 protected:
     std::ostream &              debug();
     void                        Draw();
+    bool                        useVbo();
+    void                        checkGLContext();
+    void                        genBuffer();
 
 protected:
     static std::ostream &       sdebug();
