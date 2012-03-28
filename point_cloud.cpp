@@ -228,10 +228,22 @@ void PointCloud::init(const Tao::ModuleApi *api)
 
 void PointCloud::render_callback(void *arg)
 // ----------------------------------------------------------------------------
-//   Draw interface
+//   Find point cloud by name and draw it
 // ----------------------------------------------------------------------------
 {
-    ((PointCloud *)(arg))->Draw();
+    text name = text((const char *)arg);
+    PointCloud * cloud = PointCloud::cloud(name);
+    if (cloud)
+        cloud->Draw();
+}
+
+
+void PointCloud::delete_callback(void *arg)
+// ----------------------------------------------------------------------------
+//   Delete point cloud name
+// ----------------------------------------------------------------------------
+{
+    free(arg);
 }
 
 
@@ -305,7 +317,8 @@ XL::Name_p PointCloud::cloud_random(XL::Tree_p /* self */, text name,
         }
     }
 
-    tao->scheduleRender(PointCloud::render_callback, cloud);
+    tao->addToLayout(PointCloud::render_callback, strdup(name.c_str()),
+                     PointCloud::delete_callback);
     return XL::xl_true;
 }
 

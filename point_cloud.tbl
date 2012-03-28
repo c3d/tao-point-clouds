@@ -22,22 +22,19 @@
 
 #include "point_cloud.h"
 
-#if 0
 PREFIX(CloudDrop,  tree,  "cloud_drop",
        PARM(n, text, "The name of the point cloud to drop"),
        return PointCloud::cloud_drop(n),
        GROUP(pointcloud)
        SYNOPSIS("Drop a point cloud.")
        DESCRIPTION("Removes all data structures for a point cloud."))
-PREFIX(MovieOnly,  tree,  "cloud_only",
+PREFIX(CloudOnly,  tree,  "cloud_only",
        PARM(u, text, "The name of the point cloud to preserve"),
-       return VideoSurface::point_cloud_only(u),
-       GROUP(video)
+       return PointCloud::cloud_only(u),
+       GROUP(pointcloud)
        SYNOPSIS("Purge all point clouds but one.")
        DESCRIPTION("Purge data structures for all point clouds but one."))
-#endif
-
-PREFIX(PointCloudRandom,  tree,  "cloud_random",
+PREFIX(CloudRandom,  tree,  "cloud_random",
        PARM(name, text, "The cloud name")
        PARM(points, integer, "The number of points"),
        return PointCloud::cloud_random(self, name, points),

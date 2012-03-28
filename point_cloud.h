@@ -51,6 +51,7 @@ public:
 public:
     static void                 init(const Tao::ModuleApi *api);
     static void                 render_callback(void *arg);
+    static void                 delete_callback(void *arg);
 
     // XL interface
     static XL::Name_p           cloud_drop(text name);
