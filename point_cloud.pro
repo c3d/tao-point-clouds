@@ -24,4 +24,6 @@ SOURCES += $${TAOTOPSRC}/tao/include/tao/GL/glew.c
 OTHER_FILES = point_cloud.xl point_cloud.tbl traces.tbl
 QT         += core opengl
 
-#INSTALLS += thismod_icon
+# Icon is a picture of a point cloud rendering of the well-known "Standford
+# Bunny" (http://graphics.stanford.edu/data/3Dscanrep/).
+INSTALLS += thismod_icon
