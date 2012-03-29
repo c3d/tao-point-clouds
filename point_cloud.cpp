@@ -36,7 +36,7 @@ PointCloud::PointCloud(text name)
 // ----------------------------------------------------------------------------
 //   Create a point cloud
 // ----------------------------------------------------------------------------
-    : name(name), useVboIfAvailable(true), vbo(0), context(NULL)
+    : name(name), useVboIfAvailable(true), vbo(0), context(NULL), dirty(false)
 {
     IFTRACE(pointcloud)
         debug() << "Creation\n";
@@ -90,11 +90,16 @@ void PointCloud::pointsChanged()
 //   Take into account a change in point data
 // ----------------------------------------------------------------------------
 {
+    dirty = false;
+
     if (!useVbo())
     {
         // Nothing to do since point data are reloaded on each draw
         return;
     }
+
+    IFTRACE(pointcloud)
+        debug() << "Updating VBO\n";
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, points.size()*sizeof(Point), &points[0].x,
@@ -110,6 +115,9 @@ void PointCloud::Draw()
 {
     if (points.size() == 0)
         return;
+
+    if (dirty)
+        pointsChanged();
 
     // Activate current document color
     tao->SetFillColor();
@@ -288,8 +296,18 @@ XL::Name_p PointCloud::cloud_only(text name)
 }
 
 
-XL::Name_p PointCloud::cloud_random(XL::Tree_p /* self */, text name,
-                                    XL::Integer_p points)
+XL::name_p PointCloud::cloud_show(text name)
+// ----------------------------------------------------------------------------
+//   Show point cloud
+// ----------------------------------------------------------------------------
+{
+    tao->addToLayout(PointCloud::render_callback, strdup(name.c_str()),
+                     PointCloud::delete_callback);
+    return XL::xl_true;
+}
+
+
+XL::Name_p PointCloud::cloud_random(text name, XL::Integer_p points)
 // ----------------------------------------------------------------------------
 //   Create a point cloud with n random points
 // ----------------------------------------------------------------------------
@@ -316,9 +334,23 @@ XL::Name_p PointCloud::cloud_random(XL::Tree_p /* self */, text name,
             cloud->pointsChanged();
         }
     }
+    return XL::xl_true;
+}
 
-    tao->addToLayout(PointCloud::render_callback, strdup(name.c_str()),
-                     PointCloud::delete_callback);
+
+XL::Name_p PointCloud::cloud_add(text name,
+                                 XL::Real_p x, XL::Real_p y, XL::Real_p z)
+// ----------------------------------------------------------------------------
+//   Add point to a cloud
+// ----------------------------------------------------------------------------
+{
+    PointCloud *cloud = PointCloud::cloud(name, true);
+    if (!cloud)
+        return XL::xl_false;
+
+    cloud->addPoint(x->value, y->value, z->value);
+    // Need to reload vertex buffer before next draw
+    cloud->dirty = true;
     return XL::xl_true;
 }
 

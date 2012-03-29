@@ -37,7 +37,27 @@ PREFIX(CloudOnly,  tree,  "cloud_only",
 PREFIX(CloudRandom,  tree,  "cloud_random",
        PARM(name, text, "The cloud name")
        PARM(points, integer, "The number of points"),
-       return PointCloud::cloud_random(self, name, points),
+       return PointCloud::cloud_random(name, points),
        GROUP(pointcloud)
        SYNOPSIS("Creates a cloud filled with random points.")
-       DESCRIPTION("The cloud is a box of side 1.0, centered on origin."))
+       DESCRIPTION("The cloud is a box of side 1.0, centered on origin. "
+                   "If the cloud already exists and does not have the "
+                   "specified number of points, it is modified. Points are "
+                   "removed from or added to the end of the list."))
+PREFIX(Cloud,  tree,  "cloud",
+       PARM(n, text, "The name of the point cloud"),
+       return PointCloud::cloud_show(n),
+       GROUP(pointcloud)
+       SYNOPSIS("Shows a cloud.")
+       DESCRIPTION("The point cloud with the speficied name is drawn, if "
+                   "it exists."))
+PREFIX(CloudAdd,  tree,  "cloud_add",
+       PARM(n, text, "The name of the point cloud")
+       PARM(x, real, "The X coordinate of the point to add")
+       PARM(y, real, "The Y coordinate of the point to add")
+       PARM(z, real, "The Z coordinate of the point to add"),
+       return PointCloud::cloud_add(n, x, y, z),
+       GROUP(pointcloud)
+       SYNOPSIS("Adds a point to a point cloud.")
+       DESCRIPTION("The point is appended to the list of points currently "
+                   "in the cloud. The cloud is created if it does not exist."))

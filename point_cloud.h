@@ -56,8 +56,11 @@ public:
     // XL interface
     static XL::Name_p           cloud_drop(text name);
     static XL::Name_p           cloud_only(text name);
-    static XL::Name_p           cloud_random(XL::Tree_p self, text name,
-                                             XL::Integer_p points);
+    static XL::Name_p           cloud_show(text name);
+    static XL::Name_p           cloud_random(text name, XL::Integer_p points);
+    static XL::Name_p           cloud_add(text name,
+                                          XL::Real_p x, XL::Real_p y,
+                                          XL::Real_p z);
 
 protected:
     text                        name;
@@ -65,6 +68,7 @@ protected:
     bool                        useVboIfAvailable;
     GLuint                      vbo;
     const QGLContext *          context;
+    bool                        dirty;
 
 protected:
     std::ostream &              debug();
