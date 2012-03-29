@@ -61,6 +61,9 @@ public:
     static XL::Name_p           cloud_add(text name,
                                           XL::Real_p x, XL::Real_p y,
                                           XL::Real_p z);
+    static XL::Name_p           cloud_load_data(XL::Tree_p self,
+                                                text name, text file, text fmt,
+                                                int xi, int yi, int zi);
 
 protected:
     text                        name;
@@ -69,6 +72,7 @@ protected:
     GLuint                      vbo;
     const QGLContext *          context;
     bool                        dirty;
+    text                        loadDataSource;
 
 protected:
     std::ostream &              debug();

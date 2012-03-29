@@ -23,6 +23,28 @@
 #include "tao/tao_gl.h"
 #include "point_cloud.h"
 #include "basics.h"      // From XLR
+#include <QFile>
+#include <QFileInfo>
+#include <QRegExp>
+#include <QString>
+#include <QTextStream>
+
+
+inline QString operator +(std::string s)
+// ----------------------------------------------------------------------------
+//   UTF-8 conversion from std::string to QString
+// ----------------------------------------------------------------------------
+{
+    return QString::fromUtf8(s.data(), s.length());
+}
+
+inline std::string operator +(QString s)
+// ----------------------------------------------------------------------------
+//   UTF-8 conversion from QString to std::string
+// ----------------------------------------------------------------------------
+{
+    return std::string(s.toUtf8().constData());
+}
 
 
 using namespace XL;
@@ -36,7 +58,8 @@ PointCloud::PointCloud(text name)
 // ----------------------------------------------------------------------------
 //   Create a point cloud
 // ----------------------------------------------------------------------------
-    : name(name), useVboIfAvailable(true), vbo(0), context(NULL), dirty(false)
+    : name(name), useVboIfAvailable(true), vbo(0), context(NULL), dirty(false),
+      loadDataSource("")
 {
     IFTRACE(pointcloud)
         debug() << "Creation\n";
@@ -82,6 +105,8 @@ void PointCloud::addPoint(float x, float y, float z)
 // ----------------------------------------------------------------------------
 {
     points.push_back(Point(x, y, z));
+    // Need to reload vertex buffer before next draw
+    dirty = true;
 }
 
 
@@ -99,7 +124,7 @@ void PointCloud::pointsChanged()
     }
 
     IFTRACE(pointcloud)
-        debug() << "Updating VBO\n";
+        debug() << "Updating VBO (" << points.size() << " points)\n";
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, points.size()*sizeof(Point), &points[0].x,
@@ -349,8 +374,74 @@ XL::Name_p PointCloud::cloud_add(text name,
         return XL::xl_false;
 
     cloud->addPoint(x->value, y->value, z->value);
-    // Need to reload vertex buffer before next draw
-    cloud->dirty = true;
+    return XL::xl_true;
+}
+
+
+XL::Name_p PointCloud::cloud_load_data(XL::Tree_p self,
+                                       text name, text file, text fmt,
+                                       int xi, int yi, int zi)
+// ----------------------------------------------------------------------------
+//   Load points from a file
+// ----------------------------------------------------------------------------
+{
+    Q_UNUSED(fmt);
+    Q_UNUSED(xi);
+    Q_UNUSED(yi);
+    Q_UNUSED(zi);
+
+    PointCloud *cloud = PointCloud::cloud(name, true);
+    if (!cloud)
+        return XL::xl_false;
+
+    if (cloud->loadDataSource == file)
+        return XL::xl_true;
+    cloud->loadDataSource = file;
+
+    text folder = tao->currentDocumentFolder();
+    QString qf = QString::fromUtf8(folder.data(), folder.length());
+    QString qn = QString::fromUtf8(file.data(), file.length());
+    QFileInfo inf(QDir(qf), qn);
+    file = +QDir::toNativeSeparators(inf.absoluteFilePath());
+    QFile f(+file);
+    if (!f.open(QIODevice::ReadOnly))
+    {
+        QString err;
+        err = QString("File not found or unreadable: $1\n"
+                      "File path: %1").arg(+file);
+        Ooops(+err, self);
+        return XL::xl_false;
+    }
+
+    IFTRACE(pointcloud)
+        cloud->debug() << "Loading " << file << "\n";
+
+    QTextStream t(&f);
+    QString line;
+    unsigned count = 0;
+    do
+    {
+        line = t.readLine();
+        QRegExp rx(+fmt);
+        if (rx.indexIn(line) != -1)
+        {
+            bool xok, yok, zok;
+            float x = rx.cap(xi).toFloat(&xok);
+            float y = rx.cap(yi).toFloat(&yok);
+            float z = rx.cap(zi).toFloat(&zok);
+            if (xok && yok && zok)
+            {
+                cloud->addPoint(x, y, z);
+                count++;
+            }
+        }
+    }
+    while (!line.isNull());
+    f.close();
+
+    IFTRACE(pointcloud)
+        cloud->debug() << "Loaded " << count << " points\n";
+
     return XL::xl_true;
 }
 

@@ -61,3 +61,16 @@ PREFIX(CloudAdd,  tree,  "cloud_add",
        SYNOPSIS("Adds a point to a point cloud.")
        DESCRIPTION("The point is appended to the list of points currently "
                    "in the cloud. The cloud is created if it does not exist."))
+PREFIX(CloudLoadData,  tree,  "cloud_load_data",
+       PARM(name, text, "The name of the point cloud")
+       PARM(file, text, "The name of the data file")
+       PARM(fmt, text, "The line format. A regular expression with three "
+            "parenthesized subexpressions to capture x, y and z.")
+       PARM(xi, integer, "Subexpression index for x")
+       PARM(yi, integer, "Subexpression index for y")
+       PARM(zi, integer, "Subexpression index for z"),
+       return PointCloud::cloud_load_data(self, name, file, fmt, xi, yi, zi),
+       GROUP(pointcloud)
+       SYNOPSIS("Load points from a file.")
+       DESCRIPTION("Load points from a file and add them to the specified "
+                   "point cloud. The cloud is created if it does not exist."))
