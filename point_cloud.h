@@ -1,7 +1,7 @@
 #ifndef POINT_CLOUD_H
 #define POINT_CLOUD_H
 // ****************************************************************************
-//  point_cloud.cpp                                                Tao project
+//  point_cloud.h                                                  Tao project
 // ****************************************************************************
 //
 //   File Description:
@@ -22,10 +22,9 @@
 //  (C) 2012 Taodyne SAS
 // ****************************************************************************
 
-#include "tree.h"
-#include "tao/module_api.h"
-#include <qgl.h>
-#include <map>
+#include "basics.h"  // From XLR
+#include <QString>
+#include <vector>
 
 
 class PointCloud
@@ -77,104 +76,28 @@ protected:
 };
 
 
-class PointCloudVBO : public PointCloud
+
+// ============================================================================
+//
+//    Helpers
+//
+// ============================================================================
+
+inline QString operator +(std::string s)
 // ----------------------------------------------------------------------------
-//    Point cloud drawn using a Vertex Buffer Object for higher performance
-// ----------------------------------------------------------------------------
-{
-public:
-    PointCloudVBO(text name);
-    virtual ~PointCloudVBO();
-
-public:
-    virtual unsigned  size();
-    virtual bool      addPoint(const Point &p);
-    virtual void      removePoints(unsigned n);
-    virtual void      draw();
-    virtual bool      optimize();
-    virtual bool      isOptimized() { return optimized; }
-    virtual void      clear();
-    virtual bool      randomPoints(unsigned n);
-    virtual bool      loadData(text file, text sep, int xi, int yi, int zi);
-
-protected:
-    void  checkGLContext();
-    bool  useVbo();
-    void  updateVbo();
-    void  genBuffer();
-    void  delBuffer();
-
-
-protected:
-    virtual std::ostream &  debug();
-
-protected:
-    GLuint              vbo;
-    bool                dirty;      // Point data modified, VBO not in sync
-    bool                optimized;  // Point data only in VBO
-    bool                dontOptimize;  // Data would be lost if context changes
-    unsigned            nbPoints;   // When optimized == true
-    const QGLContext *  context;
-
-    // To re-create cloud from file
-    text  sep;
-    int   xi, yi, zi;
-};
-
-
-class PointCloudFactory
-// ----------------------------------------------------------------------------
-//    Manage cache of cloud objects, implement Tao primitives and callbacks
+//   UTF-8 conversion from std::string to QString
 // ----------------------------------------------------------------------------
 {
-public:
-    enum LookupModeFlag {
-        LM_DEFAULT = 0x0,
-        LM_CREATE = 0x1,          // Create if not exists
-        LM_CLEAR_OPTIMIZED = 0x2  // Re-create if exists and is optimized
-    };
-    Q_DECLARE_FLAGS(LookupMode, LookupModeFlag)
+    return QString::fromUtf8(s.data(), s.length());
+}
 
-public:
-    PointCloudFactory() {}
-    virtual ~PointCloudFactory() {}
-
-public:
-    static PointCloud *  cloud(text name, LookupMode mode = LM_DEFAULT);
-
-    static void          init(const Tao::ModuleApi *api);
-    static void          render_callback(void *arg);
-    static void          delete_callback(void *arg);
-
-    // XL interface
-    static XL::Name_p    cloud_drop(text name);
-    static XL::Name_p    cloud_only(text name);
-    static XL::Name_p    cloud_show(text name);
-    static XL::Name_p    cloud_optimize(text name);
-    static XL::Name_p    cloud_random(text name, XL::Integer_p points);
-    static XL::Name_p    cloud_add(XL::Tree_p self,
-                                   text name,
-                                   XL::Real_p x, XL::Real_p y,
-                                   XL::Real_p z);
-    static XL::Name_p    cloud_load_data(XL::Tree_p self,
-                                         text name, text file, text fmt,
-                                         int xi, int yi, int zi);
-
-protected:
-    typedef std::map<text, PointCloud *>  cloud_map;
-
-protected:
-    static std::ostream &  sdebug();
-
-protected:
-    static cloud_map            clouds;
-
-public:
-    static bool                   vboSupported;
-    static const Tao::ModuleApi * tao;
-};
-
-Q_DECLARE_OPERATORS_FOR_FLAGS(PointCloudFactory::LookupMode)
+inline std::string operator +(QString s)
+// ----------------------------------------------------------------------------
+//   UTF-8 conversion from QString to std::string
+// ----------------------------------------------------------------------------
+{
+    return std::string(s.toUtf8().constData());
+}
 
 #endif // POINT_CLOUD_H
 

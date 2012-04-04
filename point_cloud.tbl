@@ -20,7 +20,7 @@
 //  (C) 2012 Taodyne SAS
 // ****************************************************************************
 
-#include "point_cloud.h"
+#include "point_cloud_factory.h"
 
 PREFIX(CloudDrop,  tree,  "cloud_drop",
        PARM(n, text, "The name of the point cloud to drop"),
