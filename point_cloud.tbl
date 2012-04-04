@@ -64,12 +64,11 @@ PREFIX(CloudAdd,  tree,  "cloud_add",
 PREFIX(CloudLoadData,  tree,  "cloud_load_data",
        PARM(name, text, "The name of the point cloud")
        PARM(file, text, "The name of the data file")
-       PARM(fmt, text, "The line format. A regular expression with three "
-            "parenthesized subexpressions to capture x, y and z.")
-       PARM(xi, integer, "Subexpression index for x")
-       PARM(yi, integer, "Subexpression index for y")
-       PARM(zi, integer, "Subexpression index for z"),
-       return PointCloudFactory::cloud_load_data(self, name, file, fmt, xi, yi, zi),
+       PARM(sep, text, "The field separator")
+       PARM(xi, integer, "Index for x")
+       PARM(yi, integer, "Index for y")
+       PARM(zi, integer, "Index for z"),
+       return PointCloudFactory::cloud_load_data(self, name, file, sep, xi, yi, zi),
        GROUP(pointcloud)
        SYNOPSIS("Load points from a file.")
        DESCRIPTION("Load points from a file and add them to the specified "

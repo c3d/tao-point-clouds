@@ -54,7 +54,7 @@ public:
     virtual bool      isOptimized() { return false; }
     virtual void      clear();
     virtual bool      randomPoints(unsigned n);
-    virtual bool      loadData(text file, text fmt, int xi, int yi, int zi);
+    virtual bool      loadData(text file, text sep, int xi, int yi, int zi);
 
 public:
     text       error;
@@ -95,7 +95,7 @@ public:
     virtual bool      isOptimized() { return optimized; }
     virtual void      clear();
     virtual bool      randomPoints(unsigned n);
-    virtual bool      loadData(text file, text fmt, int xi, int yi, int zi);
+    virtual bool      loadData(text file, text sep, int xi, int yi, int zi);
 
 protected:
     void  checkGLContext();
@@ -117,7 +117,7 @@ protected:
     const QGLContext *  context;
 
     // To re-create cloud from file
-    text  fmt;
+    text  sep;
     int   xi, yi, zi;
 };
 

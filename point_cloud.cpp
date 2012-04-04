@@ -142,13 +142,19 @@ bool PointCloud::randomPoints(unsigned n)
 }
 
 
-bool PointCloud::loadData(text file, text fmt, int xi, int yi, int zi)
+bool PointCloud::loadData(text file, text sep, int xi, int yi, int zi)
 // ----------------------------------------------------------------------------
 //   Load points from a file
 // ----------------------------------------------------------------------------
 {
     if (file == this->file)
         return false;
+
+    if (xi < 1 || yi < 1 || zi < 1)
+    {
+        error = "Invalid index value";
+        return false;
+    }
 
     text folder = PointCloudFactory::tao->currentDocumentFolder();
     QString qf = QString::fromUtf8(folder.data(), folder.length());
@@ -170,21 +176,22 @@ bool PointCloud::loadData(text file, text fmt, int xi, int yi, int zi)
     QTextStream t(&f);
     QString line;
     unsigned count = 0;
-    QRegExp rx(+fmt);
+    QString separator = +sep;
+    int max = qMax(qMax(xi, yi), zi);
     do
     {
         line = t.readLine();
-        if (rx.indexIn(line) != -1)
+        QStringList values = line.split(separator);
+        if (values.size() < max)
+            continue;
+        bool xok, yok, zok;
+        float x = values[xi-1].toFloat(&xok);
+        float y = values[yi-1].toFloat(&yok);
+        float z = values[zi-1].toFloat(&zok);
+        if (xok && yok && zok)
         {
-            bool xok, yok, zok;
-            float x = rx.cap(xi).toFloat(&xok);
-            float y = rx.cap(yi).toFloat(&yok);
-            float z = rx.cap(zi).toFloat(&zok);
-            if (xok && yok && zok)
-            {
-                addPoint(Point(x, y, z));
-                count++;
-            }
+            addPoint(Point(x, y, z));
+            count++;
         }
     }
     while (!line.isNull());
@@ -367,18 +374,18 @@ bool PointCloudVBO::randomPoints(unsigned n)
 }
 
 
-bool PointCloudVBO::loadData(text file, text fmt, int xi, int yi, int zi)
+bool PointCloudVBO::loadData(text file, text sep, int xi, int yi, int zi)
 // ----------------------------------------------------------------------------
 //   Load points from a file
 // ----------------------------------------------------------------------------
 {
-    bool changed = PointCloud::loadData(file, fmt, xi, yi, zi);
+    bool changed = PointCloud::loadData(file, sep, xi, yi, zi);
     if (useVbo() && changed)
     {
         updateVbo();
 
         dontOptimize = false;
-        this->fmt = fmt;
+        this->sep = sep;
         this->xi = xi;
         this->yi = yi;
         this->zi = zi;
@@ -412,7 +419,7 @@ void PointCloudVBO::checkGLContext()
                     debug() << "Reloading file\n";
                 text f = file;
                 clear();
-                loadData(f, fmt, xi, yi, zi);
+                loadData(f, sep, xi, yi, zi);
             }
             else if (nbRandom != 0)
             {
