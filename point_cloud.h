@@ -1,7 +1,7 @@
 #ifndef POINT_CLOUD_H
 #define POINT_CLOUD_H
 // ****************************************************************************
-//  point_cloud.h                                                  Tao project
+//  point_cloud.cpp                                                Tao project
 // ****************************************************************************
 //
 //   File Description:
@@ -22,118 +22,77 @@
 //  (C) 2012 Taodyne SAS
 // ****************************************************************************
 
-#include "basics.h"  // From XLR
-#include <QString>
-#include <QRunnable>
-#include <vector>
+#include "tree.h"
+#include "tao/module_api.h"
+#include <qgl.h>
+#include <map>
 
 
-class PointCloud : public QRunnable
+struct PointCloud
 // ----------------------------------------------------------------------------
 //    Display a large number of points efficiently
 // ----------------------------------------------------------------------------
 {
+    struct Point {
+        Point(float x, float y, float z) : x(x), y(y), z(z) {}
+        float x, y, z;
+    };
+    typedef std::vector<Point>            point_vec;
+    typedef std::map<text, PointCloud *>  cloud_map;
 
 public:
     PointCloud(text name);
     virtual ~PointCloud();
 
 public:
-    struct Point
-    {
-        Point(float x, float y, float z) : x(x), y(y), z(z) {}
-        float x, y, z;
-    };
-    struct Color
-    {
-        Color() : r(-1.0), g(-1.0), b(-1.0), a(-1.0) {}
-        Color(float r, float g, float b, float a) : r(r), g(g), b(b), a(a) {}
-        bool isValid() { return r != -1.0; }
-        float r, g, b, a;
-    };
-    struct LoadDataParm
-    {
-        LoadDataParm()
-            : file(""), sep(""), xi(0), yi(0), zi(0), colorScale(0.0),
-              ri(-1.0), gi(-1.0), bi(-1.0), ai(-1.0) {}
-        LoadDataParm(text file, text sep, int xi, int yi, int zi,
-                     float colorScale, float ri, float gi, float bi, float ai)
-            : file(file), sep(sep), xi(xi), yi(yi), zi(zi),
-              colorScale(colorScale), ri(ri), gi(gi), bi(bi), ai(ai) {}
-        text  file, sep;
-        int   xi, yi, zi;
-        float colorScale, ri, gi, bi, ai;
-    };
+    void                        addPoint(float x, float y, float z);
+    void                        pointsChanged();
 
 public:
-    virtual unsigned  size();
-    virtual bool      addPoint(const Point &p, Color c = Color());
-    virtual void      removePoints(unsigned n);
-    virtual void      draw();
-    virtual bool      optimize() { return false; }
-    virtual bool      isOptimized() { return false; }
-    virtual void      clear();
-    virtual bool      randomPoints(unsigned n, bool colored = false);
-    virtual bool      loadData(text file, text sep, int xi, int yi, int zi,
-                               float colorScale = 0.0,
-                               float ri = -1.0, float gi = -1.0,
-                               float bi = -1.0, float ai = -1.0,
-                               bool async = false);
-    virtual bool      colored() { return (colors.size() != 0); }
-    virtual void      run();  // From QRunnable
+    static void                 init(const Tao::ModuleApi *api);
+    static void                 render_callback(void *arg);
+    static void                 delete_callback(void *arg);
+
+    // XL interface
+    static XL::Name_p           cloud_drop(text name);
+    static XL::Name_p           cloud_only(text name);
+    static XL::Name_p           cloud_show(text name);
+    static XL::Name_p           cloud_random(text name, XL::Integer_p points);
+    static XL::Name_p           cloud_add(text name,
+                                          XL::Real_p x, XL::Real_p y,
+                                          XL::Real_p z);
+    static XL::Name_p           cloud_load_data(XL::Tree_p self,
+                                                text name, text file, text fmt,
+                                                int xi, int yi, int zi);
+
+protected:
+    text                        name;
+    point_vec                   points;
+    bool                        useVboIfAvailable;
+    GLuint                      vbo;
+    const QGLContext *          context;
+    bool                        dirty;
+    text                        loadDataSource;
+
+protected:
+    std::ostream &              debug();
+    void                        Draw();
+    bool                        useVbo();
+    void                        checkGLContext();
+    void                        genBuffer();
+
+protected:
+    static std::ostream &       sdebug();
+    static PointCloud *         cloud(text name, bool create = false);
+    static float                random01();
+
+protected:
+    static cloud_map            clouds;
+    static bool                 vboSupported;
 
 public:
-    text       error;
-    float      loaded;  // -1.0 default, [0.0..1.0[ loading, 1.0 loaded
-    text       folder;  // When cloud is loaded from a file
-
-protected:
-    typedef std::vector<Point>  point_vec;
-    typedef std::vector<Color>  color_vec;
-
-protected:
-    virtual std::ostream &  debug();
-    bool                    loadInProgress();
-
-protected:
-    text       name;
-    point_vec  points;
-    color_vec  colors;
-
-    // When cloud is loaded from a file
-    text       file;
-
-    // When cloud is random
-    unsigned   nbRandom;
-    bool       coloredRandom;
-
-    // Save loadData parameters to run in a thread
-    LoadDataParm loadDataParm;
+    static const Tao::ModuleApi * tao;
 };
-
-
-
-// ============================================================================
-//
-//    Helpers
-//
-// ============================================================================
-
-inline QString operator +(std::string s)
-// ----------------------------------------------------------------------------
-//   UTF-8 conversion from std::string to QString
-// ----------------------------------------------------------------------------
-{
-    return QString::fromUtf8(s.data(), s.length());
-}
-
-inline std::string operator +(QString s)
-// ----------------------------------------------------------------------------
-//   UTF-8 conversion from QString to std::string
-// ----------------------------------------------------------------------------
-{
-    return std::string(s.toUtf8().constData());
-}
 
 #endif // POINT_CLOUD_H
 

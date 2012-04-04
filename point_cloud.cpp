@@ -20,267 +20,182 @@
 //  (C) 2012 Taodyne SAS
 // ****************************************************************************
 
-#include "point_cloud.h"
-#include "point_cloud_factory.h"
 #include "tao/tao_gl.h"
+#include "point_cloud.h"
+#include "basics.h"      // From XLR
 #include <QFile>
 #include <QFileInfo>
 #include <QRegExp>
+#include <QString>
 #include <QTextStream>
 
 
-PointCloud::PointCloud(text name)
-    : loaded(-1.0), name(name), nbRandom(0), coloredRandom(false)
+inline QString operator +(std::string s)
 // ----------------------------------------------------------------------------
-//   Constructor
+//   UTF-8 conversion from std::string to QString
 // ----------------------------------------------------------------------------
 {
-    setAutoDelete(false);
+    return QString::fromUtf8(s.data(), s.length());
+}
+
+inline std::string operator +(QString s)
+// ----------------------------------------------------------------------------
+//   UTF-8 conversion from QString to std::string
+// ----------------------------------------------------------------------------
+{
+    return std::string(s.toUtf8().constData());
+}
+
+
+using namespace XL;
+
+const Tao::ModuleApi * PointCloud::tao = NULL;
+PointCloud::cloud_map PointCloud::clouds;
+bool PointCloud::vboSupported = false;
+
+
+PointCloud::PointCloud(text name)
+// ----------------------------------------------------------------------------
+//   Create a point cloud
+// ----------------------------------------------------------------------------
+    : name(name), useVboIfAvailable(true), vbo(0), context(NULL), dirty(false),
+      loadDataSource("")
+{
+    IFTRACE(pointcloud)
+        debug() << "Creation\n";
+    if (useVbo())
+    {
+        context = QGLContext::currentContext();
+        genBuffer();
+    }
 }
 
 
 PointCloud::~PointCloud()
 // ----------------------------------------------------------------------------
-//   Destructor
+//    Delete a point cloud
 // ----------------------------------------------------------------------------
 {
-    PointCloudFactory::instance()->pool.waitForDone();
-}
-
-
-unsigned PointCloud::size()
-// ----------------------------------------------------------------------------
-//   Number of points in the cloud
-// ----------------------------------------------------------------------------
-{
-    if (colored())
+    IFTRACE(pointcloud)
+        debug() << "Destroyed\n";
+    if (vbo)
     {
-        Q_ASSERT(points.size() == colors.size());
+        IFTRACE(pointcloud)
+            debug() << "Deleting VBO id: " << vbo << "\n";
+        glDeleteBuffers(1, &vbo);
+        vbo = 0;
     }
-    return points.size();
 }
 
 
-bool PointCloud::addPoint(const Point &p, Color c)
+void PointCloud::genBuffer()
+// ----------------------------------------------------------------------------
+//   Allocate new VBO
+// ----------------------------------------------------------------------------
+{
+    glGenBuffers(1, &vbo);
+    IFTRACE(pointcloud)
+        debug() << "Will use VBO id: " << vbo << "\n";
+}
+
+
+void PointCloud::addPoint(float x, float y, float z)
 // ----------------------------------------------------------------------------
 //   Add a new point to the cloud
 // ----------------------------------------------------------------------------
 {
-    if (c.isValid())
-    {
-        Q_ASSERT(colored() || size() == 0);
-        colors.push_back(c);
-    }
-    points.push_back(p);
-    return true;
+    points.push_back(Point(x, y, z));
+    // Need to reload vertex buffer before next draw
+    dirty = true;
 }
 
 
-
-void PointCloud::removePoints(unsigned n)
+void PointCloud::pointsChanged()
 // ----------------------------------------------------------------------------
-//   Drop n points from the cloud
+//   Take into account a change in point data
 // ----------------------------------------------------------------------------
 {
-    if (n >= size())
-        return clear();
+    dirty = false;
 
-    n -= size();
-    while (n--)
+    if (!useVbo())
     {
-        points.pop_back();
-        colors.pop_back();
+        // Nothing to do since point data are reloaded on each draw
+        return;
     }
+
+    IFTRACE(pointcloud)
+        debug() << "Updating VBO (" << points.size() << " points)\n";
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, points.size()*sizeof(Point), &points[0].x,
+                 GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 
-void PointCloud::draw()
+void PointCloud::Draw()
 // ----------------------------------------------------------------------------
 //   Draw cloud
 // ----------------------------------------------------------------------------
 {
-    if (points.size() == 0 || loadInProgress())
+    if (points.size() == 0)
         return;
 
-    if (!colored())
-    {
-        // Activate current document color
-        PointCloudFactory::instance()->tao->SetFillColor();
-    }
+    if (dirty)
+        pointsChanged();
+
+    // Activate current document color
+    tao->SetFillColor();
 
     glEnableClientState(GL_VERTEX_ARRAY);
-    glEnableClientState(GL_COLOR_ARRAY);
-    glVertexPointer(3, GL_FLOAT, sizeof(Point), &points[0].x);
-    glColorPointer(4, GL_FLOAT, sizeof(Color), &colors[0].r);
-    glDrawArrays(GL_POINTS, 0, size());
-    glDisableClientState(GL_VERTEX_ARRAY);
-    glDisableClientState(GL_COLOR_ARRAY);
-}
 
-
-void PointCloud::clear()
-// ----------------------------------------------------------------------------
-//   Remove all points
-// ----------------------------------------------------------------------------
-{
-    points.clear();
-    colors.clear();
-}
-
-
-static float random01()
-// ----------------------------------------------------------------------------
-//   Return random float in [0.0, 1.0]
-// ----------------------------------------------------------------------------
-{
-    return float(XL::xl_random(0.0, 1.0));
-}
-
-
-bool PointCloud::randomPoints(unsigned n, bool col)
-// ----------------------------------------------------------------------------
-//   Create a point cloud with n random points
-// ----------------------------------------------------------------------------
-{
-    if (size() == n)
-        return false;
-
-    // colored attribute can't be changed if cloud already exists
-    if (size() != 0)
-        col = colored();
-
-    IFTRACE(pointcloud)
-        debug() << "Points: " << size() << " requested: " << n
-                << " colored: " << (col ? "yes" : "no") << "\n";
-
-    int delta = n - size();
-    if (delta < 0)
+    if (useVbo())
     {
-        removePoints(-delta);
+        checkGLContext();
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glVertexPointer(3, GL_FLOAT, sizeof(Point), 0);
     }
     else
     {
-        for (int i = 0; i < delta; ++i)
-        {
-            Color color;
-            if (col)
-                color = Color(random01(), random01(), random01(), random01());
-            Point point(random01(), random01(), random01());
-            addPoint(point, color);
-        }
+        glVertexPointer(3, GL_FLOAT, sizeof(Point), &points[0].x);
     }
 
-    return true;
+    glDrawArrays(GL_POINTS, 0, points.size());
+
+    if (useVbo())
+    {
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+    }
+
+    glDisableClientState(GL_VERTEX_ARRAY);
 }
 
 
-bool PointCloud::loadData(text file, text sep, int xi, int yi, int zi,
-                          float colorScale,
-                          float ri, float gi, float bi, float ai, bool async)
+bool PointCloud::useVbo()
 // ----------------------------------------------------------------------------
-//   Load points from a file (synchronously or in a thread)
+//   Should we use Vertex Buffer Objects?
 // ----------------------------------------------------------------------------
 {
-    if (file == this->file)
-        return false;
-    if (async)
-    {
-        loadDataParm = LoadDataParm(file, sep, xi, yi, zi, colorScale,
-                                    ri, gi, bi, ai);
-        PointCloudFactory::instance()->pool.start(this);
-        return true;
-    }
-    if (xi < 1 || yi < 1 || zi < 1)
-    {
-        error = "Invalid coordinate index value";
-        return false;
-    }
-
-    // colored attribute can't be changed if cloud already exists
-    if (size())
-        colorScale = colored() ? 1.0 : 0.0;
-
-    Q_ASSERT(folder != "");
-    QString qf = QString::fromUtf8(folder.data(), folder.length());
-    QString qn = QString::fromUtf8(file.data(), file.length());
-    QFileInfo inf(QDir(qf), qn);
-    text path = +QDir::toNativeSeparators(inf.absoluteFilePath());
-    QFile f(+path);
-    if (!f.open(QIODevice::ReadOnly))
-    {
-        error = +QString("File not found or unreadable: $1\n"
-                      "File path: %1").arg(+path);
-        return false;
-    }
-
-    IFTRACE(pointcloud)
-        debug() << "Loading " << path << "\n";
-
-    clear();
-    QTextStream t(&f);
-    QString line;
-    unsigned count = 0;
-    QString separator = +sep;
-    int maxp = qMax(qMax(xi, yi), zi);
-    float maxc = qMax(qMax(ri, gi), qMax(bi, ai));
-    int max  = qMax(maxp, (int)maxc);
-    double sz = f.size();
-    double pos = 0.0;
-    loaded = 0.0;
-    do
-    {
-        line = t.readLine();
-        pos += line.size() + 1;
-        if (sz)
-            loaded = pos/sz;
-        QStringList values = line.split(separator);
-        if (values.size() < max)
-            continue;
-        bool xok, yok, zok;
-        float x = values[xi-1].toFloat(&xok);
-        float y = values[yi-1].toFloat(&yok);
-        float z = values[zi-1].toFloat(&zok);
-        bool colorok = true;
-        Color color;
-        if (colorScale)
-        {
-            bool rok = true;
-            bool gok = true;
-            bool bok = true;
-            bool aok = true;
-            float r = (ri > 0) ? values[ri-1].toFloat(&rok) * colorScale : -ri;
-            float g = (gi > 0) ? values[gi-1].toFloat(&gok) * colorScale : -gi;
-            float b = (bi > 0) ? values[bi-1].toFloat(&bok) * colorScale : -bi;
-            float a = (ai > 0) ? values[ai-1].toFloat(&aok) * colorScale : -ai;
-            colorok = rok && gok && bok && aok;
-            if (colorok)
-                color = Color(r, g, b, a);
-        }
-        if (xok && yok && zok && colorok)
-        {
-            addPoint(Point(x, y, z), color);
-            count++;
-        }
-    }
-    while (!line.isNull());
-    f.close();
-    loaded = 1.0;
-
-    this->file = file;
-    IFTRACE(pointcloud)
-        debug() << "Loaded " << count << " points\n";
-    return true;
+    return (useVboIfAvailable && vboSupported);
 }
 
 
-void PointCloud::run()
+void PointCloud::checkGLContext()
 // ----------------------------------------------------------------------------
-//   Called in a separate thread to load data asynchronously
+//   Do what's needed if GL context has changed
 // ----------------------------------------------------------------------------
 {
-    LoadDataParm &p(loadDataParm);
-    loadData(p.file, p.sep, p.xi, p.yi, p.zi, p.colorScale,
-             p.ri, p.gi, p.bi, p.ai, false);
+    if (QGLContext::currentContext() != context)
+    {
+        IFTRACE(pointcloud)
+            debug() << "GL context changed\n";
+
+        // Re-create VBO and copy data
+        genBuffer();
+        pointsChanged();
+
+        context = QGLContext::currentContext();
+    }
 }
 
 
@@ -293,10 +208,263 @@ std::ostream & PointCloud::debug()
     return std::cerr;
 }
 
-bool PointCloud::loadInProgress()
+
+std::ostream & PointCloud::sdebug()
 // ----------------------------------------------------------------------------
-//   Is a file currently being loaded?
+//   Convenience method to log with a common prefix
 // ----------------------------------------------------------------------------
 {
-    return (loaded >= 0 && loaded < 1.0);
+    std::cerr << "[PointCloud] ";
+    return std::cerr;
+}
+
+
+PointCloud * PointCloud::cloud(text name, bool create)
+// ----------------------------------------------------------------------------
+//   Find point cloud by name, optionally create new one
+// ----------------------------------------------------------------------------
+{
+    cloud_map::iterator found = clouds.find(name);
+    if (found != clouds.end())
+        return (*found).second;
+    PointCloud *cloud = NULL;
+    if (create)
+    {
+        cloud = new PointCloud(name);
+        clouds[name] = cloud;
+    }
+    return cloud;
+}
+
+
+float PointCloud::random01()
+// ----------------------------------------------------------------------------
+//   Return random float in [0.0, 1.0]
+// ----------------------------------------------------------------------------
+{
+    return float(xl_random(0.0, 1.0));
+}
+
+
+void PointCloud::init(const Tao::ModuleApi *api)
+// ----------------------------------------------------------------------------
+//   Initialize static part of class
+// ----------------------------------------------------------------------------
+{
+    tao = api;
+    glewInit();
+    QString extensions((const char *)glGetString(GL_EXTENSIONS));
+    vboSupported = extensions.contains("ARB_vertex_buffer_object");
+    sdebug() << "VBO supported: " << vboSupported << "\n";
+}
+
+
+void PointCloud::render_callback(void *arg)
+// ----------------------------------------------------------------------------
+//   Find point cloud by name and draw it
+// ----------------------------------------------------------------------------
+{
+    text name = text((const char *)arg);
+    PointCloud * cloud = PointCloud::cloud(name);
+    if (cloud)
+        cloud->Draw();
+}
+
+
+void PointCloud::delete_callback(void *arg)
+// ----------------------------------------------------------------------------
+//   Delete point cloud name
+// ----------------------------------------------------------------------------
+{
+    free(arg);
+}
+
+
+XL::Name_p PointCloud::cloud_drop(text name)
+// ----------------------------------------------------------------------------
+//   Purge the given point cloud from memory
+// ----------------------------------------------------------------------------
+{
+    cloud_map::iterator found = clouds.find(name);
+    if (found != clouds.end())
+    {
+        PointCloud *s = (*found).second;
+        clouds.erase(found);
+        delete s;
+        return XL::xl_true;
+    }
+    return XL::xl_false;
+}
+
+
+XL::Name_p PointCloud::cloud_only(text name)
+// ----------------------------------------------------------------------------
+//   Purge all other point clouds from memory
+// ----------------------------------------------------------------------------
+{
+    cloud_map::iterator n = clouds.begin();
+    for (cloud_map::iterator v = clouds.begin(); v != clouds.end(); v = n)
+    {
+        if (name != (*v).first)
+        {
+            PointCloud *s = (*v).second;
+            clouds.erase(v);
+            delete s;
+            n = clouds.begin();
+        }
+        else
+        {
+            n = ++v;
+        }
+    }
+    return XL::xl_false;
+}
+
+
+XL::name_p PointCloud::cloud_show(text name)
+// ----------------------------------------------------------------------------
+//   Show point cloud
+// ----------------------------------------------------------------------------
+{
+    tao->addToLayout(PointCloud::render_callback, strdup(name.c_str()),
+                     PointCloud::delete_callback);
+    return XL::xl_true;
+}
+
+
+XL::Name_p PointCloud::cloud_random(text name, XL::Integer_p points)
+// ----------------------------------------------------------------------------
+//   Create a point cloud with n random points
+// ----------------------------------------------------------------------------
+{
+    Q_UNUSED(points);
+
+    unsigned wanted = points->value;
+    PointCloud *cloud = PointCloud::cloud(name);
+    if (!cloud || cloud->points.size() != wanted)
+    {
+        if (!cloud)
+            cloud = PointCloud::cloud(name, true);
+        if (!cloud)
+            return XL::xl_false;
+        IFTRACE(pointcloud)
+            cloud->debug() << "Points: " << cloud->points.size()
+                           << " requested: " << wanted << "\n";
+        if (cloud->points.size() != wanted)
+        {
+            while (cloud->points.size() > wanted)
+                cloud->points.pop_back();
+            for (unsigned i = cloud->points.size(); i < wanted; ++i)
+                cloud->addPoint(random01(), random01(), random01());
+            cloud->pointsChanged();
+        }
+    }
+    return XL::xl_true;
+}
+
+
+XL::Name_p PointCloud::cloud_add(text name,
+                                 XL::Real_p x, XL::Real_p y, XL::Real_p z)
+// ----------------------------------------------------------------------------
+//   Add point to a cloud
+// ----------------------------------------------------------------------------
+{
+    PointCloud *cloud = PointCloud::cloud(name, true);
+    if (!cloud)
+        return XL::xl_false;
+
+    cloud->addPoint(x->value, y->value, z->value);
+    return XL::xl_true;
+}
+
+
+XL::Name_p PointCloud::cloud_load_data(XL::Tree_p self,
+                                       text name, text file, text fmt,
+                                       int xi, int yi, int zi)
+// ----------------------------------------------------------------------------
+//   Load points from a file
+// ----------------------------------------------------------------------------
+{
+    Q_UNUSED(fmt);
+    Q_UNUSED(xi);
+    Q_UNUSED(yi);
+    Q_UNUSED(zi);
+
+    PointCloud *cloud = PointCloud::cloud(name, true);
+    if (!cloud)
+        return XL::xl_false;
+
+    if (cloud->loadDataSource == file)
+        return XL::xl_true;
+    cloud->loadDataSource = file;
+
+    text folder = tao->currentDocumentFolder();
+    QString qf = QString::fromUtf8(folder.data(), folder.length());
+    QString qn = QString::fromUtf8(file.data(), file.length());
+    QFileInfo inf(QDir(qf), qn);
+    file = +QDir::toNativeSeparators(inf.absoluteFilePath());
+    QFile f(+file);
+    if (!f.open(QIODevice::ReadOnly))
+    {
+        QString err;
+        err = QString("File not found or unreadable: $1\n"
+                      "File path: %1").arg(+file);
+        Ooops(+err, self);
+        return XL::xl_false;
+    }
+
+    IFTRACE(pointcloud)
+        cloud->debug() << "Loading " << file << "\n";
+
+    QTextStream t(&f);
+    QString line;
+    unsigned count = 0;
+    do
+    {
+        line = t.readLine();
+        QRegExp rx(+fmt);
+        if (rx.indexIn(line) != -1)
+        {
+            bool xok, yok, zok;
+            float x = rx.cap(xi).toFloat(&xok);
+            float y = rx.cap(yi).toFloat(&yok);
+            float z = rx.cap(zi).toFloat(&zok);
+            if (xok && yok && zok)
+            {
+                cloud->addPoint(x, y, z);
+                count++;
+            }
+        }
+    }
+    while (!line.isNull());
+    f.close();
+
+    IFTRACE(pointcloud)
+        cloud->debug() << "Loaded " << count << " points\n";
+
+    return XL::xl_true;
+}
+
+
+XL_DEFINE_TRACES
+
+int module_init(const Tao::ModuleApi *api, const Tao::ModuleInfo *mod)
+// ----------------------------------------------------------------------------
+//   Initialize the Tao module
+// ----------------------------------------------------------------------------
+{
+    Q_UNUSED(mod);
+    XL_INIT_TRACES();
+    PointCloud::init(api);
+    return 0;
+}
+
+
+int module_exit()
+// ----------------------------------------------------------------------------
+//   Uninitialize the Tao module
+// ----------------------------------------------------------------------------
+{
+    PointCloud::cloud_only("");
+    return 0;
 }

@@ -14,8 +14,8 @@ MODINSTDIR = point_cloud
 
 include(../modules.pri)
 
-HEADERS     = point_cloud.h point_cloud_vbo.h point_cloud_factory.h
-SOURCES     = point_cloud.cpp point_cloud_vbo.cpp point_cloud_factory.cpp
+HEADERS     = point_cloud.h
+SOURCES     = point_cloud.cpp
 TBL_SOURCES = point_cloud.tbl
 !macx {
 DEFINES += GLEW_STATIC
