@@ -44,6 +44,16 @@ PREFIX(CloudRandom,  tree,  "cloud_random",
                    "If the cloud already exists and does not have the "
                    "specified number of points, it is modified. Points are "
                    "removed from or added to the end of the list."))
+PREFIX(CloudRandomColored,  tree,  "cloud_random_colored",
+       PARM(name, text, "The cloud name")
+       PARM(points, integer, "The number of points"),
+       return PointCloudFactory::cloud_random(name, points, true),
+       GROUP(pointcloud)
+       SYNOPSIS("Creates a cloud filled with random points, randomly colored.")
+       DESCRIPTION("Similar to the other form of cloud_random, except that "
+                   "instead of taking the current color, points have a random "
+                   "color. If the cloud already exists and does not contain "
+                   "colored points, this function will work like could_random."))
 PREFIX(Cloud,  tree,  "cloud",
        PARM(n, text, "The name of the point cloud"),
        return PointCloudFactory::cloud_show(n),
@@ -61,6 +71,22 @@ PREFIX(CloudAdd,  tree,  "cloud_add",
        SYNOPSIS("Adds a point to a point cloud.")
        DESCRIPTION("The point is appended to the list of points currently "
                    "in the cloud. The cloud is created if it does not exist."))
+PREFIX(CloudAddColored,  tree,  "cloud_add",
+       PARM(n, text, "The name of the point cloud")
+       PARM(x, real, "The X coordinate of the point to add")
+       PARM(y, real, "The Y coordinate of the point to add")
+       PARM(z, real, "The Z coordinate of the point to add")
+       PARM(r, real, "The red color component")
+       PARM(g, real, "The green color component")
+       PARM(b, real, "The blue color component")
+       PARM(a, real, "The alpha color component"),
+       return PointCloudFactory::cloud_add(self, n, x, y, z, r, g, b, a),
+       GROUP(pointcloud)
+       SYNOPSIS("Adds a colored point to a point cloud.")
+       DESCRIPTION("The point is appended to the list of points currently "
+                   "in the cloud. The cloud is created if it does not exist. "
+                   "If the cloud exists and is not colored, the color "
+                   "components are ignored."))
 PREFIX(CloudLoadData,  tree,  "cloud_load_data",
        PARM(name, text, "The name of the point cloud")
        PARM(file, text, "The name of the data file")
@@ -73,6 +99,26 @@ PREFIX(CloudLoadData,  tree,  "cloud_load_data",
        SYNOPSIS("Load points from a file.")
        DESCRIPTION("Load points from a file and add them to the specified "
                    "point cloud. The cloud is created if it does not exist."))
+PREFIX(CloudLoadDataColor,  tree,  "cloud_load_data",
+       PARM(name, text, "The name of the point cloud")
+       PARM(file, text, "The name of the data file")
+       PARM(sep, text, "The field separator")
+       PARM(xi, integer, "Index for x")
+       PARM(yi, integer, "Index for y")
+       PARM(zi, integer, "Index for z")
+       PARM(scale, real, "Scaling factor for color components read from the file")
+       PARM(ri, real, "Index for the red component or constant red value if < 0")
+       PARM(gi, real, "Index for the green component or constant green value if < 0")
+       PARM(bi, real, "Index for the blue component or constant blue value if < 0")
+       PARM(ai, real, "Index for the alpha component or constant alpha value if < 0"),
+       return PointCloudFactory::cloud_load_data(self, name, file, sep, xi, yi, zi, scale, ri, gi, bi, ai),
+       GROUP(pointcloud)
+       SYNOPSIS("Load points from a file.")
+       DESCRIPTION("Load points from a file and add them to the specified "
+                   "point cloud. The cloud is created if it does not exist. "
+                   "The color components read form the file are scaled by the "
+                   "specified value before being stored with the point. "
+                   "The resulting values must be in the range 0.0 to 1.0. "))
 PREFIX(CloudFinish,  tree,  "cloud_optimize",
        PARM(n, text, "The name of the point cloud"),
        return PointCloudFactory::cloud_optimize(n),

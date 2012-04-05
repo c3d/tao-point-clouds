@@ -34,7 +34,7 @@ class PointCloud
 {
 
 public:
-    PointCloud(text name) : name(name), nbRandom(0) {}
+    PointCloud(text name) : name(name), nbRandom(0), coloredRandom(false) {}
     virtual ~PointCloud() {}
 
 public:
@@ -43,23 +43,35 @@ public:
         Point(float x, float y, float z) : x(x), y(y), z(z) {}
         float x, y, z;
     };
+    struct Color
+    {
+        Color() : r(-1.0), g(-1.0), b(-1.0), a(-1.0) {}
+        Color(float r, float g, float b, float a) : r(r), g(g), b(b), a(a) {}
+        bool isValid() { return r != -1.0; }
+        float r, g, b, a;
+    };
 
 public:
-    virtual unsigned  size() { return points.size(); }
-    virtual bool      addPoint(const Point &p);
+    virtual unsigned  size();
+    virtual bool      addPoint(const Point &p, Color c = Color());
     virtual void      removePoints(unsigned n);
     virtual void      draw();
     virtual bool      optimize() { return false; }
     virtual bool      isOptimized() { return false; }
     virtual void      clear();
-    virtual bool      randomPoints(unsigned n);
-    virtual bool      loadData(text file, text sep, int xi, int yi, int zi);
+    virtual bool      randomPoints(unsigned n, bool colored = false);
+    virtual bool      loadData(text file, text sep, int xi, int yi, int zi,
+                               float colorScale = 0.0,
+                               float ri = -1.0, float gi = -1.0,
+                               float bi = -1.0, float ai = -1.0);
+    virtual bool      colored() { return (colors.size() != 0); }
 
 public:
     text       error;
 
 protected:
     typedef std::vector<Point>  point_vec;
+    typedef std::vector<Color>  color_vec;
 
 protected:
     virtual std::ostream &  debug();
@@ -67,12 +79,14 @@ protected:
 protected:
     text       name;
     point_vec  points;
+    color_vec  colors;
 
     // When cloud is loaded from a file
     text       file;
 
     // When cloud is random
     unsigned   nbRandom;
+    bool       coloredRandom;
 };
 
 

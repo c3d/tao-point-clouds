@@ -37,37 +37,45 @@ public:
 
 public:
     virtual unsigned  size();
-    virtual bool      addPoint(const Point &p);
+    virtual bool      addPoint(const Point &p, Color c = Color());
     virtual void      removePoints(unsigned n);
     virtual void      draw();
     virtual bool      optimize();
     virtual bool      isOptimized() { return optimized; }
     virtual void      clear();
-    virtual bool      randomPoints(unsigned n);
-    virtual bool      loadData(text file, text sep, int xi, int yi, int zi);
+    virtual bool      randomPoints(unsigned n, bool colored);
+    virtual bool      loadData(text file, text sep, int xi, int yi, int zi,
+                               float colorScale = 0.0,
+                               float ri = -1.0, float gi = -1.0,
+                               float bi = -1.0, float ai = -1.0);
+    virtual bool      colored();
 
 protected:
     void  checkGLContext();
     bool  useVbo();
     void  updateVbo();
-    void  genBuffer();
-    void  delBuffer();
+    void  genPointBuffer();
+    void  genColorBuffer();
+    void  delBuffers();
 
 
 protected:
     virtual std::ostream &  debug();
 
 protected:
-    GLuint              vbo;
-    bool                dirty;      // Point data modified, VBO not in sync
-    bool                optimized;  // Point data only in VBO
+    GLuint              vbo, colorVbo;
+    bool                dirty;      // Point data modified, VBOs not in sync
+    bool                optimized;  // Point data only in VBOs
     bool                dontOptimize;  // Data would be lost if context changes
     unsigned            nbPoints;   // When optimized == true
+    bool                is_colored; // When optimized == true
     const QGLContext *  context;
 
     // To re-create cloud from file
     text  sep;
     int   xi, yi, zi;
+    float colorScale;
+    float ri, gi, bi, ai;
 };
 
 #endif // POINT_CLOUD_VBO_H

@@ -58,14 +58,20 @@ public:
     static XL::Name_p    cloud_only(text name);
     static XL::Name_p    cloud_show(text name);
     static XL::Name_p    cloud_optimize(text name);
-    static XL::Name_p    cloud_random(text name, XL::Integer_p points);
+    static XL::Name_p    cloud_random(text name, XL::Integer_p points,
+                                      bool colored = false);
     static XL::Name_p    cloud_add(XL::Tree_p self,
                                    text name,
                                    XL::Real_p x, XL::Real_p y,
-                                   XL::Real_p z);
+                                   XL::Real_p z,
+                                   float r = -1.0, float g = -1.0,
+                                   float b = -1.0, float a = -1.0);
     static XL::Name_p    cloud_load_data(XL::Tree_p self,
                                          text name, text file, text fmt,
-                                         int xi, int yi, int zi);
+                                         int xi, int yi, int zi,
+                                         float colorScale = 0.0,
+                                         float ri = -1.0, float gi = -1.0,
+                                         float bi = -1.0, float ai = -1.0);
 
 protected:
     typedef std::map<text, PointCloud *>  cloud_map;

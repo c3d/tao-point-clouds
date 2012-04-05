@@ -28,10 +28,11 @@ PointCloudVBO::PointCloudVBO(text name)
 // ----------------------------------------------------------------------------
 //   Initialize object
 // ----------------------------------------------------------------------------
-    : PointCloud(name), dirty(false), optimized(false), dontOptimize(false),
+    : PointCloud(name), vbo(0), colorVbo(0),
+      dirty(false), optimized(false), dontOptimize(false),
       nbPoints(0), context(QGLContext::currentContext())
 {
-    genBuffer();
+    genPointBuffer();
 }
 
 
@@ -40,7 +41,7 @@ PointCloudVBO::~PointCloudVBO()
 //   Destroy object
 // ----------------------------------------------------------------------------
 {
-    delBuffer();
+    delBuffers();
 }
 
 
@@ -55,7 +56,7 @@ unsigned PointCloudVBO::size()
 }
 
 
-bool PointCloudVBO::addPoint(const Point &p)
+bool PointCloudVBO::addPoint(const Point &p, Color c)
 // ----------------------------------------------------------------------------
 //   Add a new point to the cloud
 // ----------------------------------------------------------------------------
@@ -66,7 +67,7 @@ bool PointCloudVBO::addPoint(const Point &p)
         return false;
     }
 
-    PointCloud::addPoint(p);
+    PointCloud::addPoint(p, c);
     dirty = true;
     dontOptimize = true;
     return true;
@@ -103,8 +104,17 @@ void PointCloudVBO::draw()
     if (dirty)
         updateVbo();
 
-    // Activate current document color
-    PointCloudFactory::tao->SetFillColor();
+    if (colored())
+    {
+        glEnableClientState(GL_COLOR_ARRAY);
+        glBindBuffer(GL_ARRAY_BUFFER, colorVbo);
+        glColorPointer(4, GL_FLOAT, sizeof(Color), 0);
+    }
+    else
+    {
+        // Activate current document color
+        PointCloudFactory::tao->SetFillColor();
+    }
 
     glEnableClientState(GL_VERTEX_ARRAY);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -112,6 +122,8 @@ void PointCloudVBO::draw()
     glDrawArrays(GL_POINTS, 0, size());
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glDisableClientState(GL_VERTEX_ARRAY);
+    if (colored())
+        glDisableClientState(GL_COLOR_ARRAY);
 }
 
 
@@ -162,12 +174,12 @@ void PointCloudVBO::clear()
 }
 
 
-bool PointCloudVBO::randomPoints(unsigned n)
+bool PointCloudVBO::randomPoints(unsigned n, bool colored)
 // ----------------------------------------------------------------------------
 //   Create a point cloud with n random points
 // ----------------------------------------------------------------------------
 {
-    bool changed = PointCloud::randomPoints(n);
+    bool changed = PointCloud::randomPoints(n, colored);
     if (useVbo() && changed)
     {
         updateVbo();
@@ -177,12 +189,15 @@ bool PointCloudVBO::randomPoints(unsigned n)
 }
 
 
-bool PointCloudVBO::loadData(text file, text sep, int xi, int yi, int zi)
+bool PointCloudVBO::loadData(text file, text sep, int xi, int yi, int zi,
+                             float colorScale,
+                             float ri, float gi, float bi, float ai)
 // ----------------------------------------------------------------------------
 //   Load points from a file
 // ----------------------------------------------------------------------------
 {
-    bool changed = PointCloud::loadData(file, sep, xi, yi, zi);
+    bool changed = PointCloud::loadData(file, sep, xi, yi, zi, colorScale,
+                                        ri, gi, bi, ai);
     if (useVbo() && changed)
     {
         updateVbo();
@@ -192,8 +207,24 @@ bool PointCloudVBO::loadData(text file, text sep, int xi, int yi, int zi)
         this->xi = xi;
         this->yi = yi;
         this->zi = zi;
+        this->colorScale = colorScale;
+        this->ri = ri;
+        this->gi = gi;
+        this->bi = bi;
+        this->ai = ai;
     }
     return changed;
+}
+
+
+bool PointCloudVBO::colored()
+// ----------------------------------------------------------------------------
+//   Do we have color data for the point set?
+// ----------------------------------------------------------------------------
+{
+    if (optimized)
+        return is_colored;
+     return (colors.size() != 0);
 }
 
 
@@ -207,8 +238,11 @@ void PointCloudVBO::checkGLContext()
         IFTRACE(pointcloud)
             debug() << "GL context changed\n";
 
-        // Re-create VBO
-        genBuffer();
+        // Re-create VBO(s)
+        genPointBuffer();
+        if (colored())
+            genColorBuffer();
+
         if (optimized)
         {
             IFTRACE(pointcloud)
@@ -222,7 +256,7 @@ void PointCloudVBO::checkGLContext()
                     debug() << "Reloading file\n";
                 text f = file;
                 clear();
-                loadData(f, sep, xi, yi, zi);
+                loadData(f, sep, xi, yi, zi, colorScale, ri, gi, bi, ai);
             }
             else if (nbRandom != 0)
             {
@@ -230,7 +264,7 @@ void PointCloudVBO::checkGLContext()
                     debug() << "Re-creating random points\n";
                 unsigned n = nbRandom;
                 clear();
-                randomPoints(n);
+                randomPoints(n, coloredRandom);
             }
 
             optimized = false;
@@ -268,29 +302,62 @@ void PointCloudVBO::updateVbo()
                  GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
+    if (colored())
+    {
+        if (colorVbo == 0)
+            genColorBuffer();
+
+        IFTRACE(pointcloud)
+            debug() << "Updating VBO #" << colorVbo << " (" << size()
+                    << " colors)\n";
+
+        glBindBuffer(GL_ARRAY_BUFFER, colorVbo);
+        glBufferData(GL_ARRAY_BUFFER, size()*sizeof(Color), &colors[0].r,
+                     GL_STATIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+    }
     dirty = false;
 }
 
 
-void PointCloudVBO::genBuffer()
+void PointCloudVBO::genPointBuffer()
 // ----------------------------------------------------------------------------
-//   Allocate new VBO
+//   Allocate new VBO for point coordinates
 // ----------------------------------------------------------------------------
 {
     glGenBuffers(1, &vbo);
     IFTRACE(pointcloud)
-        debug() << "Will use VBO id: " << vbo << "\n";
+        debug() << "Allocated VBO #" << vbo << " for point coordinates\n";
 }
 
 
-void PointCloudVBO::delBuffer()
+void PointCloudVBO::genColorBuffer()
 // ----------------------------------------------------------------------------
-//   Release VBO
+//   Allocate new VBO for colors
+// ----------------------------------------------------------------------------
+{
+    Q_ASSERT(colored());
+    glGenBuffers(1, &colorVbo);
+    IFTRACE(pointcloud)
+        debug() << "Allocated VBO #" << colorVbo << " for colors\n";
+}
+
+
+void PointCloudVBO::delBuffers()
+// ----------------------------------------------------------------------------
+//   Release VBO(s)
 // ----------------------------------------------------------------------------
 {
     IFTRACE(pointcloud)
-        debug() << "Releasing VBO id: " << vbo << "\n";
+        debug() << "Releasing VBO #" << vbo << "\n";
     glDeleteBuffers(1, &vbo);
+    if (colored())
+    {
+        Q_ASSERT(colorVbo);
+        IFTRACE(pointcloud)
+            debug() << "Releasing VBO #" << colorVbo << "\n";
+        glDeleteBuffers(1, &colorVbo);
+    }
 }
 
 

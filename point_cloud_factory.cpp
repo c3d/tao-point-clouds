@@ -165,7 +165,8 @@ XL::name_p PointCloudFactory::cloud_optimize(text name)
 }
 
 
-XL::Name_p PointCloudFactory::cloud_random(text name, XL::Integer_p points)
+XL::Name_p PointCloudFactory::cloud_random(text name, XL::Integer_p points,
+                                           bool colored)
 // ----------------------------------------------------------------------------
 //   Create a point cloud with n random points
 // ----------------------------------------------------------------------------
@@ -174,14 +175,15 @@ XL::Name_p PointCloudFactory::cloud_random(text name, XL::Integer_p points)
     if (!cloud)
         return XL::xl_false;
 
-    bool changed = cloud->randomPoints(points->value);
+    bool changed = cloud->randomPoints(points->value, colored);
     return changed ? XL::xl_true : XL::xl_false;
 }
 
 
 XL::Name_p PointCloudFactory::cloud_add(XL::Tree_p self,
                                         text name, XL::Real_p x, XL::Real_p y,
-                                        XL::Real_p z)
+                                        XL::Real_p z,
+                                        float r, float g, float b, float a)
 // ----------------------------------------------------------------------------
 //   Add point to a cloud
 // ----------------------------------------------------------------------------
@@ -192,8 +194,11 @@ XL::Name_p PointCloudFactory::cloud_add(XL::Tree_p self,
     if (!cloud)
         return XL::xl_false;
 
-    bool changed = cloud->addPoint(PointCloud::Point(x->value, y->value,
-                                                     z->value));
+    PointCloud::Point point(x->value, y->value, z->value);
+    PointCloud::Color color;
+    if (r >= 0 && g >= 0 && b >= 0 && a >= 0)
+        color = PointCloud::Color(r, g, b, a);
+    bool changed = cloud->addPoint(point, color);
     if (!changed && cloud->error != "")
     {
         XL::Ooops(cloud->error, self);
@@ -206,7 +211,10 @@ XL::Name_p PointCloudFactory::cloud_add(XL::Tree_p self,
 
 XL::Name_p PointCloudFactory::cloud_load_data(XL::Tree_p self,
                                               text name, text file, text fmt,
-                                              int xi, int yi, int zi)
+                                              int xi, int yi, int zi,
+                                              float colorScale,
+                                              float ri, float gi, float bi,
+                                              float ai)
 // ----------------------------------------------------------------------------
 //   Load points from a file
 // ----------------------------------------------------------------------------
@@ -215,7 +223,8 @@ XL::Name_p PointCloudFactory::cloud_load_data(XL::Tree_p self,
     if (!cloud)
         return XL::xl_false;
 
-    bool changed = cloud->loadData(file, fmt, xi, yi, zi);
+    bool changed = cloud->loadData(file, fmt, xi, yi, zi, colorScale,
+                                   ri, gi, bi, ai);
     if (!changed && cloud->error != "")
     {
         XL::Ooops(cloud->error, self);

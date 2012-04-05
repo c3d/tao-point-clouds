@@ -29,11 +29,29 @@
 #include <QTextStream>
 
 
-bool PointCloud::addPoint(const Point &p)
+unsigned PointCloud::size()
+// ----------------------------------------------------------------------------
+//   Number of points in the cloud
+// ----------------------------------------------------------------------------
+{
+    if (colored())
+    {
+        Q_ASSERT(points.size() == colors.size());
+    }
+    return points.size();
+}
+
+
+bool PointCloud::addPoint(const Point &p, Color c)
 // ----------------------------------------------------------------------------
 //   Add a new point to the cloud
 // ----------------------------------------------------------------------------
 {
+    if (c.isValid())
+    {
+        Q_ASSERT(colored() || size() == 0);
+        colors.push_back(c);
+    }
     points.push_back(p);
     return true;
 }
@@ -50,7 +68,10 @@ void PointCloud::removePoints(unsigned n)
 
     n -= size();
     while (n--)
+    {
         points.pop_back();
+        colors.pop_back();
+    }
 }
 
 
@@ -62,13 +83,19 @@ void PointCloud::draw()
     if (points.size() == 0)
         return;
 
-    // Activate current document color
-    PointCloudFactory::tao->SetFillColor();
+    if (!colored())
+    {
+        // Activate current document color
+        PointCloudFactory::tao->SetFillColor();
+    }
 
     glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_COLOR_ARRAY);
     glVertexPointer(3, GL_FLOAT, sizeof(Point), &points[0].x);
+    glColorPointer(4, GL_FLOAT, sizeof(Color), &colors[0].r);
     glDrawArrays(GL_POINTS, 0, size());
     glDisableClientState(GL_VERTEX_ARRAY);
+    glDisableClientState(GL_COLOR_ARRAY);
 }
 
 
@@ -78,6 +105,7 @@ void PointCloud::clear()
 // ----------------------------------------------------------------------------
 {
     points.clear();
+    colors.clear();
 }
 
 
@@ -90,7 +118,7 @@ static float random01()
 }
 
 
-bool PointCloud::randomPoints(unsigned n)
+bool PointCloud::randomPoints(unsigned n, bool col)
 // ----------------------------------------------------------------------------
 //   Create a point cloud with n random points
 // ----------------------------------------------------------------------------
@@ -98,21 +126,38 @@ bool PointCloud::randomPoints(unsigned n)
     if (size() == n)
         return false;
 
+    // colored attribute can't be changed if cloud already exists
+    if (size() != 0)
+        col = colored();
+
     IFTRACE(pointcloud)
-        debug() << "Points: " << size() << " requested: " << n << "\n";
+        debug() << "Points: " << size() << " requested: " << n
+                << " colored: " << (col ? "yes" : "no") << "\n";
 
     int delta = n - size();
     if (delta < 0)
+    {
         removePoints(-delta);
+    }
     else
+    {
         for (int i = 0; i < delta; ++i)
-            addPoint(Point(random01(), random01(), random01()));
+        {
+            Color color;
+            if (col)
+                color = Color(random01(), random01(), random01(), random01());
+            Point point(random01(), random01(), random01());
+            addPoint(point, color);
+        }
+    }
 
     return true;
 }
 
 
-bool PointCloud::loadData(text file, text sep, int xi, int yi, int zi)
+bool PointCloud::loadData(text file, text sep, int xi, int yi, int zi,
+                          float colorScale,
+                          float ri, float gi, float bi, float ai)
 // ----------------------------------------------------------------------------
 //   Load points from a file
 // ----------------------------------------------------------------------------
@@ -122,9 +167,13 @@ bool PointCloud::loadData(text file, text sep, int xi, int yi, int zi)
 
     if (xi < 1 || yi < 1 || zi < 1)
     {
-        error = "Invalid index value";
+        error = "Invalid coordinate index value";
         return false;
     }
+
+    // colored attribute can't be changed if cloud already exists
+    if (size())
+        colorScale = colored() ? 1.0 : 0.0;
 
     text folder = PointCloudFactory::tao->currentDocumentFolder();
     QString qf = QString::fromUtf8(folder.data(), folder.length());
@@ -147,7 +196,9 @@ bool PointCloud::loadData(text file, text sep, int xi, int yi, int zi)
     QString line;
     unsigned count = 0;
     QString separator = +sep;
-    int max = qMax(qMax(xi, yi), zi);
+    int maxp = qMax(qMax(xi, yi), zi);
+    float maxc = qMax(qMax(ri, gi), qMax(bi, ai));
+    int max  = qMax(maxp, (int)maxc);
     do
     {
         line = t.readLine();
@@ -158,9 +209,25 @@ bool PointCloud::loadData(text file, text sep, int xi, int yi, int zi)
         float x = values[xi-1].toFloat(&xok);
         float y = values[yi-1].toFloat(&yok);
         float z = values[zi-1].toFloat(&zok);
-        if (xok && yok && zok)
+        bool colorok = true;
+        Color color;
+        if (colorScale)
         {
-            addPoint(Point(x, y, z));
+            bool rok = true;
+            bool gok = true;
+            bool bok = true;
+            bool aok = true;
+            float r = (ri > 0) ? values[ri-1].toFloat(&rok) * colorScale : -ri;
+            float g = (gi > 0) ? values[gi-1].toFloat(&gok) * colorScale : -gi;
+            float b = (bi > 0) ? values[bi-1].toFloat(&bok) * colorScale : -bi;
+            float a = (ai > 0) ? values[ai-1].toFloat(&aok) * colorScale : -ai;
+            colorok = rok && gok && bok && aok;
+            if (colorok)
+                color = Color(r, g, b, a);
+        }
+        if (xok && yok && zok && colorok)
+        {
+            addPoint(Point(x, y, z), color);
             count++;
         }
     }
