@@ -24,18 +24,19 @@
 
 #include "basics.h"  // From XLR
 #include <QString>
+#include <QRunnable>
 #include <vector>
 
 
-class PointCloud
+class PointCloud : public QRunnable
 // ----------------------------------------------------------------------------
 //    Display a large number of points efficiently
 // ----------------------------------------------------------------------------
 {
 
 public:
-    PointCloud(text name) : name(name), nbRandom(0), coloredRandom(false) {}
-    virtual ~PointCloud() {}
+    PointCloud(text name);
+    virtual ~PointCloud();
 
 public:
     struct Point
@@ -50,6 +51,19 @@ public:
         bool isValid() { return r != -1.0; }
         float r, g, b, a;
     };
+    struct LoadDataParm
+    {
+        LoadDataParm()
+            : file(""), sep(""), xi(0), yi(0), zi(0), colorScale(0.0),
+              ri(-1.0), gi(-1.0), bi(-1.0), ai(-1.0) {}
+        LoadDataParm(text file, text sep, int xi, int yi, int zi,
+                     float colorScale, float ri, float gi, float bi, float ai)
+            : file(file), sep(sep), xi(xi), yi(yi), zi(zi),
+              colorScale(colorScale), ri(ri), gi(gi), bi(bi), ai(ai) {}
+        text  file, sep;
+        int   xi, yi, zi;
+        float colorScale, ri, gi, bi, ai;
+    };
 
 public:
     virtual unsigned  size();
@@ -63,11 +77,15 @@ public:
     virtual bool      loadData(text file, text sep, int xi, int yi, int zi,
                                float colorScale = 0.0,
                                float ri = -1.0, float gi = -1.0,
-                               float bi = -1.0, float ai = -1.0);
+                               float bi = -1.0, float ai = -1.0,
+                               bool async = false);
     virtual bool      colored() { return (colors.size() != 0); }
+    virtual void      run();  // From QRunnable
 
 public:
     text       error;
+    float      loaded;  // -1.0 default, [0.0..1.0[ loading, 1.0 loaded
+    text       folder;  // When cloud is loaded from a file
 
 protected:
     typedef std::vector<Point>  point_vec;
@@ -75,6 +93,7 @@ protected:
 
 protected:
     virtual std::ostream &  debug();
+    bool                    loadInProgress();
 
 protected:
     text       name;
@@ -87,6 +106,9 @@ protected:
     // When cloud is random
     unsigned   nbRandom;
     bool       coloredRandom;
+
+    // Save loadData parameters to run in a thread
+    LoadDataParm loadDataParm;
 };
 
 

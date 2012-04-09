@@ -57,6 +57,7 @@ protected:
     void  genPointBuffer();
     void  genColorBuffer();
     void  delBuffers();
+    bool  dontOptimize() { return (noOptimize || loadInProgress()); }
 
 
 protected:
@@ -66,7 +67,7 @@ protected:
     GLuint              vbo, colorVbo;
     bool                dirty;      // Point data modified, VBOs not in sync
     bool                optimized;  // Point data only in VBOs
-    bool                dontOptimize;  // Data would be lost if context changes
+    bool                noOptimize; // Data would be lost if context changes
     unsigned            nbPoints;   // When optimized == true
     bool                is_colored; // When optimized == true
     const QGLContext *  context;

@@ -25,6 +25,7 @@
 #include "tree.h"
 #include "tao/module_api.h"
 #include <QFlags>
+#include <QThreadPool>
 #include <map>
 
 class PointCloud;
@@ -43,13 +44,15 @@ public:
     Q_DECLARE_FLAGS(LookupMode, LookupModeFlag)
 
 public:
-    PointCloudFactory() {}
+    PointCloudFactory();
     virtual ~PointCloudFactory() {}
 
-public:
-    static PointCloud *  cloud(text name, LookupMode mode = LM_DEFAULT);
+    PointCloud *  cloud(text name, LookupMode mode = LM_DEFAULT);
 
-    static void          init(const Tao::ModuleApi *api);
+public:
+    static PointCloudFactory * instance();
+    static void                destroy();
+
     static void          render_callback(void *arg);
     static void          delete_callback(void *arg);
 
@@ -72,19 +75,25 @@ public:
                                          float colorScale = 0.0,
                                          float ri = -1.0, float gi = -1.0,
                                          float bi = -1.0, float ai = -1.0);
+    static XL::Real_p    cloud_loaded(text name);
 
-protected:
-    typedef std::map<text, PointCloud *>  cloud_map;
+
+public:
+    const Tao::ModuleApi *  tao;
+    bool                    vboSupported;
+    QThreadPool             pool;
 
 protected:
     static std::ostream &  sdebug();
 
 protected:
-    static cloud_map            clouds;
+    typedef std::map<text, PointCloud *>  cloud_map;
 
-public:
-    static bool                   vboSupported;
-    static const Tao::ModuleApi * tao;
+protected:
+    cloud_map    clouds;
+
+protected:
+    static PointCloudFactory * factory;
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(PointCloudFactory::LookupMode)

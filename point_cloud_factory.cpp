@@ -25,10 +25,44 @@
 #include "point_cloud_vbo.h"
 
 
-const Tao::ModuleApi * PointCloudFactory::tao = NULL;
-PointCloudFactory::cloud_map PointCloudFactory::clouds;
-bool PointCloudFactory::vboSupported = false;
+PointCloudFactory * PointCloudFactory::factory = NULL;
 
+
+PointCloudFactory::PointCloudFactory()
+// ----------------------------------------------------------------------------
+//   Constructor
+// ----------------------------------------------------------------------------
+{
+    glewInit();
+    QString extensions((const char *)glGetString(GL_EXTENSIONS));
+    vboSupported = extensions.contains("ARB_vertex_buffer_object");
+    IFTRACE(pointcloud)
+        sdebug() << "VBO supported: " << vboSupported << "\n";
+    pool.setMaxThreadCount(1);
+}
+
+
+PointCloudFactory * PointCloudFactory::instance()
+// ----------------------------------------------------------------------------
+//   Return factory instance (singleton)
+// ----------------------------------------------------------------------------
+{
+    if (!factory)
+        factory = new PointCloudFactory;
+    return factory;
+}
+
+
+void PointCloudFactory::destroy()
+// ----------------------------------------------------------------------------
+//   Destroy factory instance
+// ----------------------------------------------------------------------------
+{
+    if (!factory)
+        return;
+    delete factory;
+    factory = NULL;
+}
 
 
 PointCloud * PointCloudFactory::cloud(text name, LookupMode mode)
@@ -64,27 +98,13 @@ PointCloud * PointCloudFactory::cloud(text name, LookupMode mode)
 }
 
 
-void PointCloudFactory::init(const Tao::ModuleApi *api)
-// ----------------------------------------------------------------------------
-//   Initialize static part of class
-// ----------------------------------------------------------------------------
-{
-    tao = api;
-    glewInit();
-    QString extensions((const char *)glGetString(GL_EXTENSIONS));
-    vboSupported = extensions.contains("ARB_vertex_buffer_object");
-    IFTRACE(pointcloud)
-        sdebug() << "VBO supported: " << vboSupported << "\n";
-}
-
-
 void PointCloudFactory::render_callback(void *arg)
 // ----------------------------------------------------------------------------
 //   Find point cloud by name and draw it
 // ----------------------------------------------------------------------------
 {
     text name = text((const char *)arg);
-    PointCloud * cloud = PointCloudFactory::cloud(name);
+    PointCloud * cloud = PointCloudFactory::instance()->cloud(name);
     if (cloud)
         cloud->draw();
 }
@@ -104,11 +124,12 @@ XL::Name_p PointCloudFactory::cloud_drop(text name)
 //   Purge the given point cloud from memory
 // ----------------------------------------------------------------------------
 {
-    cloud_map::iterator found = clouds.find(name);
-    if (found != clouds.end())
+    PointCloudFactory * f = PointCloudFactory::instance();
+    cloud_map::iterator found = f->clouds.find(name);
+    if (found != f->clouds.end())
     {
         PointCloud *s = (*found).second;
-        clouds.erase(found);
+        f->clouds.erase(found);
         delete s;
         return XL::xl_true;
     }
@@ -121,15 +142,18 @@ XL::Name_p PointCloudFactory::cloud_only(text name)
 //   Purge all other point clouds from memory
 // ----------------------------------------------------------------------------
 {
-    cloud_map::iterator n = clouds.begin();
-    for (cloud_map::iterator v = clouds.begin(); v != clouds.end(); v = n)
+    PointCloudFactory * f = PointCloudFactory::instance();
+    cloud_map::iterator n = f->clouds.begin();
+    for (cloud_map::iterator v = f->clouds.begin();
+         v != f->clouds.end();
+         v = n)
     {
         if (name != (*v).first)
         {
             PointCloud *s = (*v).second;
-            clouds.erase(v);
+            f->clouds.erase(v);
             delete s;
-            n = clouds.begin();
+            n = f->clouds.begin();
         }
         else
         {
@@ -145,8 +169,9 @@ XL::name_p PointCloudFactory::cloud_show(text name)
 //   Show point cloud
 // ----------------------------------------------------------------------------
 {
-    tao->addToLayout(PointCloudFactory::render_callback, strdup(name.c_str()),
-                     PointCloudFactory::delete_callback);
+    instance()->tao->addToLayout(PointCloudFactory::render_callback,
+                                 strdup(name.c_str()),
+                                 PointCloudFactory::delete_callback);
     return XL::xl_true;
 }
 
@@ -156,7 +181,7 @@ XL::name_p PointCloudFactory::cloud_optimize(text name)
 //   Optimize point cloud data
 // ----------------------------------------------------------------------------
 {
-    PointCloud *cloud = PointCloudFactory::cloud(name);
+    PointCloud *cloud = instance()->cloud(name);
     if (!cloud)
         return XL::xl_false;
 
@@ -171,7 +196,7 @@ XL::Name_p PointCloudFactory::cloud_random(text name, XL::Integer_p points,
 //   Create a point cloud with n random points
 // ----------------------------------------------------------------------------
 {
-    PointCloud *cloud = PointCloudFactory::cloud(name, LM_CREATE);
+    PointCloud *cloud = instance()->cloud(name, LM_CREATE);
     if (!cloud)
         return XL::xl_false;
 
@@ -188,9 +213,7 @@ XL::Name_p PointCloudFactory::cloud_add(XL::Tree_p self,
 //   Add point to a cloud
 // ----------------------------------------------------------------------------
 {
-    PointCloud *cloud = PointCloudFactory::cloud(name,
-                                                 LM_CREATE |
-                                                 LM_CLEAR_OPTIMIZED);
+    PointCloud *cloud = instance()->cloud(name, LM_CREATE | LM_CLEAR_OPTIMIZED);
     if (!cloud)
         return XL::xl_false;
 
@@ -219,12 +242,14 @@ XL::Name_p PointCloudFactory::cloud_load_data(XL::Tree_p self,
 //   Load points from a file
 // ----------------------------------------------------------------------------
 {
-    PointCloud *cloud = PointCloudFactory::cloud(name, LM_CREATE);
+    PointCloud *cloud = instance()->cloud(name, LM_CREATE);
     if (!cloud)
         return XL::xl_false;
 
+    if (cloud->folder == "")
+        cloud->folder = instance()->tao->currentDocumentFolder();
     bool changed = cloud->loadData(file, fmt, xi, yi, zi, colorScale,
-                                   ri, gi, bi, ai);
+                                   ri, gi, bi, ai, true);
     if (!changed && cloud->error != "")
     {
         XL::Ooops(cloud->error, self);
@@ -232,6 +257,21 @@ XL::Name_p PointCloudFactory::cloud_load_data(XL::Tree_p self,
     }
 
     return changed ? XL::xl_true : XL::xl_false;
+}
+
+
+XL::Real_p PointCloudFactory::cloud_loaded(text name)
+// ----------------------------------------------------------------------------
+//   How much of the file has been loaded by cloud_load_data (0.0 to 1.0)
+// ----------------------------------------------------------------------------
+{
+    PointCloud *cloud = instance()->cloud(name);
+    if (!cloud)
+        return new XL::Real(0.0);
+    double l = cloud->loaded;
+    if (l < 0)
+        l = 0;
+    return new XL::Real(l);
 }
 
 
@@ -254,7 +294,7 @@ int module_init(const Tao::ModuleApi *api, const Tao::ModuleInfo *mod)
 {
     Q_UNUSED(mod);
     XL_INIT_TRACES();
-    PointCloudFactory::init(api);
+    PointCloudFactory::instance()->tao = api;
     return 0;
 }
 
@@ -265,5 +305,6 @@ int module_exit()
 // ----------------------------------------------------------------------------
 {
     PointCloudFactory::cloud_only("");
+    PointCloudFactory::destroy();
     return 0;
 }

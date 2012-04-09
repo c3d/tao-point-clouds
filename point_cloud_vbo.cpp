@@ -29,7 +29,7 @@ PointCloudVBO::PointCloudVBO(text name)
 //   Initialize object
 // ----------------------------------------------------------------------------
     : PointCloud(name), vbo(0), colorVbo(0),
-      dirty(false), optimized(false), dontOptimize(false),
+      dirty(false), optimized(false), noOptimize(false),
       nbPoints(0), context(QGLContext::currentContext())
 {
     genPointBuffer();
@@ -69,7 +69,7 @@ bool PointCloudVBO::addPoint(const Point &p, Color c)
 
     PointCloud::addPoint(p, c);
     dirty = true;
-    dontOptimize = true;
+    noOptimize = true;
     return true;
 }
 
@@ -84,7 +84,7 @@ void PointCloudVBO::removePoints(unsigned n)
     PointCloud::removePoints(n);
     if (useVbo())
         updateVbo();
-    dontOptimize = true;
+    noOptimize = true;
 }
 
 
@@ -113,7 +113,7 @@ void PointCloudVBO::draw()
     else
     {
         // Activate current document color
-        PointCloudFactory::tao->SetFillColor();
+        PointCloudFactory::instance()->tao->SetFillColor();
     }
 
     glEnableClientState(GL_VERTEX_ARRAY);
@@ -132,7 +132,7 @@ bool PointCloudVBO::optimize()
 //   Optimize point cloud data
 // ----------------------------------------------------------------------------
 {
-    if (optimized || dontOptimize)
+    if (optimized || dontOptimize())
         return optimized;
 
     if (useVbo())
@@ -183,7 +183,7 @@ bool PointCloudVBO::randomPoints(unsigned n, bool colored)
     if (useVbo() && changed)
     {
         updateVbo();
-        dontOptimize = false;
+        noOptimize = false;
     }
     return changed;
 }
@@ -202,7 +202,7 @@ bool PointCloudVBO::loadData(text file, text sep, int xi, int yi, int zi,
     {
         updateVbo();
 
-        dontOptimize = false;
+        noOptimize = false;
         this->sep = sep;
         this->xi = xi;
         this->yi = yi;
@@ -283,7 +283,7 @@ bool PointCloudVBO::useVbo()
 //   Should we use Vertex Buffer Objects?
 // ----------------------------------------------------------------------------
 {
-    return PointCloudFactory::vboSupported;
+    return PointCloudFactory::instance()->vboSupported;
 }
 
 
@@ -351,9 +351,8 @@ void PointCloudVBO::delBuffers()
     IFTRACE(pointcloud)
         debug() << "Releasing VBO #" << vbo << "\n";
     glDeleteBuffers(1, &vbo);
-    if (colored())
+    if (colorVbo)
     {
-        Q_ASSERT(colorVbo);
         IFTRACE(pointcloud)
             debug() << "Releasing VBO #" << colorVbo << "\n";
         glDeleteBuffers(1, &colorVbo);

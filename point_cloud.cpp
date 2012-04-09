@@ -29,6 +29,25 @@
 #include <QTextStream>
 
 
+PointCloud::PointCloud(text name)
+    : loaded(-1.0), name(name), nbRandom(0), coloredRandom(false)
+// ----------------------------------------------------------------------------
+//   Constructor
+// ----------------------------------------------------------------------------
+{
+    setAutoDelete(false);
+}
+
+
+PointCloud::~PointCloud()
+// ----------------------------------------------------------------------------
+//   Destructor
+// ----------------------------------------------------------------------------
+{
+    PointCloudFactory::instance()->pool.waitForDone();
+}
+
+
 unsigned PointCloud::size()
 // ----------------------------------------------------------------------------
 //   Number of points in the cloud
@@ -80,13 +99,13 @@ void PointCloud::draw()
 //   Draw cloud
 // ----------------------------------------------------------------------------
 {
-    if (points.size() == 0)
+    if (points.size() == 0 || loadInProgress())
         return;
 
     if (!colored())
     {
         // Activate current document color
-        PointCloudFactory::tao->SetFillColor();
+        PointCloudFactory::instance()->tao->SetFillColor();
     }
 
     glEnableClientState(GL_VERTEX_ARRAY);
@@ -157,14 +176,20 @@ bool PointCloud::randomPoints(unsigned n, bool col)
 
 bool PointCloud::loadData(text file, text sep, int xi, int yi, int zi,
                           float colorScale,
-                          float ri, float gi, float bi, float ai)
+                          float ri, float gi, float bi, float ai, bool async)
 // ----------------------------------------------------------------------------
-//   Load points from a file
+//   Load points from a file (synchronously or in a thread)
 // ----------------------------------------------------------------------------
 {
     if (file == this->file)
         return false;
-
+    if (async)
+    {
+        loadDataParm = LoadDataParm(file, sep, xi, yi, zi, colorScale,
+                                    ri, gi, bi, ai);
+        PointCloudFactory::instance()->pool.start(this);
+        return true;
+    }
     if (xi < 1 || yi < 1 || zi < 1)
     {
         error = "Invalid coordinate index value";
@@ -175,7 +200,7 @@ bool PointCloud::loadData(text file, text sep, int xi, int yi, int zi,
     if (size())
         colorScale = colored() ? 1.0 : 0.0;
 
-    text folder = PointCloudFactory::tao->currentDocumentFolder();
+    Q_ASSERT(folder != "");
     QString qf = QString::fromUtf8(folder.data(), folder.length());
     QString qn = QString::fromUtf8(file.data(), file.length());
     QFileInfo inf(QDir(qf), qn);
@@ -199,9 +224,15 @@ bool PointCloud::loadData(text file, text sep, int xi, int yi, int zi,
     int maxp = qMax(qMax(xi, yi), zi);
     float maxc = qMax(qMax(ri, gi), qMax(bi, ai));
     int max  = qMax(maxp, (int)maxc);
+    double sz = f.size();
+    double pos = 0.0;
+    loaded = 0.0;
     do
     {
         line = t.readLine();
+        pos += line.size() + 1;
+        if (sz)
+            loaded = pos/sz;
         QStringList values = line.split(separator);
         if (values.size() < max)
             continue;
@@ -233,11 +264,23 @@ bool PointCloud::loadData(text file, text sep, int xi, int yi, int zi,
     }
     while (!line.isNull());
     f.close();
+    loaded = 1.0;
 
     this->file = file;
     IFTRACE(pointcloud)
         debug() << "Loaded " << count << " points\n";
     return true;
+}
+
+
+void PointCloud::run()
+// ----------------------------------------------------------------------------
+//   Called in a separate thread to load data asynchronously
+// ----------------------------------------------------------------------------
+{
+    LoadDataParm &p(loadDataParm);
+    loadData(p.file, p.sep, p.xi, p.yi, p.zi, p.colorScale,
+             p.ri, p.gi, p.bi, p.ai, false);
 }
 
 
@@ -248,4 +291,12 @@ std::ostream & PointCloud::debug()
 {
     std::cerr << "[PointCloud] \"" << name << "\" " << (void*)this << " ";
     return std::cerr;
+}
+
+bool PointCloud::loadInProgress()
+// ----------------------------------------------------------------------------
+//   Is a file currently being loaded?
+// ----------------------------------------------------------------------------
+{
+    return (loaded >= 0 && loaded < 1.0);
 }

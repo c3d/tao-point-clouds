@@ -119,6 +119,13 @@ PREFIX(CloudLoadDataColor,  tree,  "cloud_load_data",
                    "The color components read form the file are scaled by the "
                    "specified value before being stored with the point. "
                    "The resulting values must be in the range 0.0 to 1.0. "))
+PREFIX(CloudLoaded,  real,  "cloud_loaded",
+       PARM(name, text, "The name of the point cloud"),
+       return PointCloudFactory::cloud_loaded(name),
+       GROUP(pointcloud)
+       SYNOPSIS("The progress of cloud_load_data.")
+       DESCRIPTION("Returns a value between 0.0 (no point loaded) and 1.0 "
+                   "(file loaded)."))
 PREFIX(CloudFinish,  tree,  "cloud_optimize",
        PARM(n, text, "The name of the point cloud"),
        return PointCloudFactory::cloud_optimize(n),
