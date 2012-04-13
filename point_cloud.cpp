@@ -34,9 +34,7 @@ PointCloud::PointCloud(text name)
 // ----------------------------------------------------------------------------
 //   Constructor
 // ----------------------------------------------------------------------------
-{
-    setAutoDelete(false);
-}
+{}
 
 
 PointCloud::~PointCloud()
@@ -44,7 +42,7 @@ PointCloud::~PointCloud()
 //   Destructor
 // ----------------------------------------------------------------------------
 {
-    PointCloudFactory::instance()->pool.waitForDone();
+    interrupt();
 }
 
 
@@ -229,6 +227,13 @@ bool PointCloud::loadData(text file, text sep, int xi, int yi, int zi,
     loaded = 0.0;
     do
     {
+        if (interrupted())
+        {
+            IFTRACE(pointcloud)
+                debug() << "loadData interrupted\n";
+            return false;
+        }
+
         line = t.readLine();
         pos += line.size() + 1;
         if (sz)

@@ -38,7 +38,6 @@ PointCloudFactory::PointCloudFactory()
     vboSupported = extensions.contains("ARB_vertex_buffer_object");
     IFTRACE(pointcloud)
         sdebug() << "VBO supported: " << vboSupported << "\n";
-    pool.setMaxThreadCount(1);
 }
 
 
@@ -268,6 +267,7 @@ XL::Real_p PointCloudFactory::cloud_loaded(text name)
     PointCloud *cloud = instance()->cloud(name);
     if (!cloud)
         return new XL::Real(0.0);
+    instance()->tao->refreshOn(QEvent::Timer, -1.0);
     double l = cloud->loaded;
     if (l < 0)
         l = 0;
@@ -304,7 +304,7 @@ int module_exit()
 //   Uninitialize the Tao module
 // ----------------------------------------------------------------------------
 {
+    PointCloudFactory::instance()->pool.stopAll();
     PointCloudFactory::cloud_only("");
-    PointCloudFactory::destroy();
     return 0;
 }

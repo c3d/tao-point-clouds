@@ -22,10 +22,10 @@
 //  (C) 2012 Taodyne SAS
 // ****************************************************************************
 
+#include "thread_pool.h"
 #include "tree.h"
 #include "tao/module_api.h"
 #include <QFlags>
-#include <QThreadPool>
 #include <map>
 
 class PointCloud;
@@ -81,7 +81,7 @@ public:
 public:
     const Tao::ModuleApi *  tao;
     bool                    vboSupported;
-    QThreadPool             pool;
+    ThreadPool              pool;
 
 protected:
     static std::ostream &  sdebug();

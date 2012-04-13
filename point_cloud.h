@@ -22,13 +22,14 @@
 //  (C) 2012 Taodyne SAS
 // ****************************************************************************
 
+#include "thread_pool.h"
 #include "basics.h"  // From XLR
 #include <QString>
 #include <QRunnable>
 #include <vector>
 
 
-class PointCloud : public QRunnable
+class PointCloud : public Runnable
 // ----------------------------------------------------------------------------
 //    Display a large number of points efficiently
 // ----------------------------------------------------------------------------
@@ -80,7 +81,7 @@ public:
                                float bi = -1.0, float ai = -1.0,
                                bool async = false);
     virtual bool      colored() { return (colors.size() != 0); }
-    virtual void      run();  // From QRunnable
+    virtual void      run();  // From Runnable
 
 public:
     text       error;

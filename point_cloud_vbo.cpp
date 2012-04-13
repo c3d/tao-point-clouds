@@ -41,6 +41,7 @@ PointCloudVBO::~PointCloudVBO()
 //   Destroy object
 // ----------------------------------------------------------------------------
 {
+    interrupt();
     delBuffers();
 }
 
