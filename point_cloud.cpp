@@ -30,10 +30,11 @@
 
 
 PointCloud::PointCloud(text name)
-    : loaded(-1.0), name(name), nbRandom(0), coloredRandom(false)
 // ----------------------------------------------------------------------------
 //   Constructor
 // ----------------------------------------------------------------------------
+    : loaded(-1.0), pointSize(-1.0), name(name), nbRandom(0),
+      coloredRandom(false)
 {}
 
 
@@ -106,6 +107,12 @@ void PointCloud::draw()
         PointCloudFactory::instance()->tao->SetFillColor();
     }
 
+    if (pointSize > 0)
+    {
+        glPushAttrib(GL_POINT_BIT);
+        glPointSize(pointSize);
+    }
+
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_COLOR_ARRAY);
     glVertexPointer(3, GL_FLOAT, sizeof(Point), &points[0].x);
@@ -113,6 +120,9 @@ void PointCloud::draw()
     glDrawArrays(GL_POINTS, 0, size());
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_COLOR_ARRAY);
+
+    if (pointSize > 0)
+        glPopAttrib();
 }
 
 

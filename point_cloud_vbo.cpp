@@ -117,6 +117,12 @@ void PointCloudVBO::draw()
         PointCloudFactory::instance()->tao->SetFillColor();
     }
 
+    if (pointSize > 0)
+    {
+        glPushAttrib(GL_POINT_BIT);
+        glPointSize(pointSize);
+    }
+
     glEnableClientState(GL_VERTEX_ARRAY);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glVertexPointer(3, GL_FLOAT, sizeof(Point), 0);
@@ -125,6 +131,10 @@ void PointCloudVBO::draw()
     glDisableClientState(GL_VERTEX_ARRAY);
     if (colored())
         glDisableClientState(GL_COLOR_ARRAY);
+
+    if (pointSize > 0)
+        glPopAttrib();
+
 }
 
 

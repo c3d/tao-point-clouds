@@ -275,6 +275,19 @@ XL::Real_p PointCloudFactory::cloud_loaded(text name)
 }
 
 
+XL::Real_p PointCloudFactory::cloud_point_size(text name, float size)
+// ----------------------------------------------------------------------------
+//   Sets the GL point size for the cloud
+// ----------------------------------------------------------------------------
+{
+    PointCloud *cloud = instance()->cloud(name);
+    if (!cloud)
+        return new XL::Real(0.0);
+    cloud->pointSize = size;
+    return new XL::Real(size);
+}
+
+
 std::ostream & PointCloudFactory::sdebug()
 // ----------------------------------------------------------------------------
 //   Convenience method to log with a common prefix

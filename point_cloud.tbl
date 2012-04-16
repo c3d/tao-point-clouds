@@ -138,3 +138,10 @@ PREFIX(CloudFinish,  tree,  "cloud_optimize",
                    "result in the cloud being re-created from an empty "
                    "state. When VBOs are not used, this function does "
                    "nothing."))
+PREFIX(CloudPointSize,  real,  "cloud_point_size",
+       PARM(name, text, "The name of the point cloud")
+       PARM(size, real, "The point size (default is 1.0)"),
+       return PointCloudFactory::cloud_point_size(name, size),
+       GROUP(pointcloud)
+       SYNOPSIS("Set the point size.")
+       DESCRIPTION("Sets the GL point size of the cloud."))
