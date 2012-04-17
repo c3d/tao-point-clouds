@@ -33,3 +33,6 @@ QMAKE_SUBSTITUTES = doc/Doxyfile.in
 DOXYFILE = doc/Doxyfile
 DOXYLANG = en,fr
 include(../modules_doc.pri)
+
+LICENSE_FILES = point_cloud.taokey.notsigned
+include(../licenses.pri)

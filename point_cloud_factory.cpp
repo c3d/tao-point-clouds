@@ -28,26 +28,34 @@
 PointCloudFactory * PointCloudFactory::factory = NULL;
 
 
-PointCloudFactory::PointCloudFactory()
+PointCloudFactory::PointCloudFactory(const Tao::ModuleApi *tao)
 // ----------------------------------------------------------------------------
 //   Constructor
 // ----------------------------------------------------------------------------
+    : tao(tao), licensed(false), licenseTested(false)
 {
     glewInit();
     QString extensions((const char *)glGetString(GL_EXTENSIONS));
     vboSupported = extensions.contains("ARB_vertex_buffer_object");
     IFTRACE(pointcloud)
         sdebug() << "VBO supported: " << vboSupported << "\n";
+    if (!licenseTested)
+    {
+        licensed = tao->hasLicense("Tao Presentations Impress 1.0");
+        if (!licensed)
+            licensed = tao->checkLicense("PointCloud 1.0", false);
+        licenseTested = true;
+    }
 }
 
 
-PointCloudFactory * PointCloudFactory::instance()
+PointCloudFactory * PointCloudFactory::instance(const Tao::ModuleApi *tao)
 // ----------------------------------------------------------------------------
 //   Return factory instance (singleton)
 // ----------------------------------------------------------------------------
 {
     if (!factory)
-        factory = new PointCloudFactory;
+        factory = new PointCloudFactory(tao);
     return factory;
 }
 
@@ -307,7 +315,7 @@ int module_init(const Tao::ModuleApi *api, const Tao::ModuleInfo *mod)
 {
     Q_UNUSED(mod);
     XL_INIT_TRACES();
-    PointCloudFactory::instance()->tao = api;
+    PointCloudFactory::instance(api);
     return 0;
 }
 
