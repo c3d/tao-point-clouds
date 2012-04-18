@@ -97,10 +97,6 @@ void PointCloudVBO::draw()
     if (!useVbo())
         return PointCloud::draw();
 
-    PointCloudFactory * fact = PointCloudFactory::instance();
-    if (!fact->licensed && !fact->tao->blink(4.5, 0.5, 300.0))
-        return;
-
     checkGLContext();
 
     if (size() == 0)

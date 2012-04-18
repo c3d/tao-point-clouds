@@ -44,13 +44,13 @@ public:
     Q_DECLARE_FLAGS(LookupMode, LookupModeFlag)
 
 public:
-    PointCloudFactory(const Tao::ModuleApi *tao = 0);
+    PointCloudFactory();
     virtual ~PointCloudFactory() {}
 
     PointCloud *  cloud(text name, LookupMode mode = LM_DEFAULT);
 
 public:
-    static PointCloudFactory * instance(const Tao::ModuleApi *tao = 0);
+    static PointCloudFactory * instance();
     static void                destroy();
 
     static void          render_callback(void *arg);
@@ -80,7 +80,7 @@ public:
 
 public:
     const Tao::ModuleApi *  tao;
-    bool                    vboSupported, licensed;
+    bool                    vboSupported;
     ThreadPool              pool;
 
 protected:
@@ -91,7 +91,6 @@ protected:
 
 protected:
     cloud_map    clouds;
-    bool         licenseTested;
 
 protected:
     static PointCloudFactory * factory;
