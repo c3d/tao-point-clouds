@@ -41,9 +41,7 @@ PointCloudFactory::PointCloudFactory(const Tao::ModuleApi *tao)
         sdebug() << "VBO supported: " << vboSupported << "\n";
     if (!licenseTested)
     {
-        licensed = tao->hasLicense("Tao Presentations Impress 1.0");
-        if (!licensed)
-            licensed = tao->checkLicense("PointCloud 1.0", false);
+        licensed = tao->checkImpressOrLicense("PointCloud 1.0");
         licenseTested = true;
     }
 }
