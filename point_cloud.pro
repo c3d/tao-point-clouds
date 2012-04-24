@@ -28,3 +28,11 @@ QT         += core opengl
 # Icon is a picture of a point cloud rendering of the well-known "Standford
 # Bunny" (http://graphics.stanford.edu/data/3Dscanrep/).
 INSTALLS += thismod_icon
+
+QMAKE_SUBSTITUTES = doc/Doxyfile.in
+DOXYFILE = doc/Doxyfile
+DOXYLANG = en,fr
+include(../modules_doc.pri)
+
+LICENSE_FILES = point_cloud.taokey.notsigned
+include(../licenses.pri)
