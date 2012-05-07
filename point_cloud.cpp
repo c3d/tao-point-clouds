@@ -23,7 +23,6 @@
 #include "point_cloud.h"
 #include "point_cloud_factory.h"
 #include "tao/tao_gl.h"
-#include <QDir>
 #include <QFile>
 #include <QFileInfo>
 #include <QRegExp>

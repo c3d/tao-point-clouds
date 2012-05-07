@@ -23,7 +23,6 @@
 #include "point_cloud_factory.h"
 #include "point_cloud.h"
 #include "point_cloud_vbo.h"
-#include <QEvent>
 
 
 PointCloudFactory * PointCloudFactory::factory = NULL;
