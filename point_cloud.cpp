@@ -85,11 +85,11 @@ void PointCloud::removePoints(unsigned n)
     if (n >= size())
         return clear();
 
+    n -= size();
     while (n--)
     {
         points.pop_back();
-        if (colored())
-            colors.pop_back();
+        colors.pop_back();
     }
 }
 
@@ -103,10 +103,13 @@ void PointCloud::draw()
         return;
 
     PointCloudFactory * fact = PointCloudFactory::instance();
+    if (!fact->licensed && !fact->tao->blink(4.5, 0.5, 300.0))
+        return;
+
     if (!colored())
     {
         // Activate current document color
-        fact->tao->SetFillColor();
+        PointCloudFactory::instance()->tao->SetFillColor();
     }
 
     if (pointSize > 0)
