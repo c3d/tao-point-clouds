@@ -18,9 +18,9 @@ HEADERS     = point_cloud.h point_cloud_vbo.h point_cloud_factory.h \
               thread_pool.h
 SOURCES     = point_cloud.cpp point_cloud_vbo.cpp point_cloud_factory.cpp
 TBL_SOURCES = point_cloud.tbl
-win32 {
-  DEFINES += GLEW_STATIC
-  SOURCES += $${TAOTOPSRC}/tao/include/tao/GL/glew.c
+!macx {
+DEFINES += GLEW_STATIC
+SOURCES += $${TAOTOPSRC}/tao/include/tao/GL/glew.c
 }
 OTHER_FILES = point_cloud.xl point_cloud.tbl traces.tbl
 QT         += core opengl

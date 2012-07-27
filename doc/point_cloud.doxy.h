@@ -39,7 +39,7 @@ page "Cube",
  * Permet de créer et d'afficher des nuages de points. Un nuage est identifié
  * par son nom. Les points peuvent être lus depuis un fichier ou ajoutés
  * dynamiquement. Un nuage peut être monochrome, auquel cas tous les points qui
- * le composent ont la couleur courante (cf. @p color). Ou bien chaque point
+ * le composent ont la couleur courante (cf. @ref color). Ou bien chaque point
  * peut avoir sa propre couleur. La taille des points peut être définie pour
  * chaque nuage.
  *
@@ -121,7 +121,7 @@ cloud_random(name:text, n:integer);
  * green, blue and alpha color components take a random value between 0.0
  * and 1.0. @n
  * If the cloud already exists and does not contain colored points, this
- * function behaves like @ref cloud_random.
+ * function behaves like @ref could_random.
  * @~french
  * Remplit un nuage avec des points aléatoires colorés.
  * Similaire à @ref cloud_random, sauf qu'au lieu de prendre la couleur
@@ -198,7 +198,7 @@ cloud_add(name:text, x:real, y:real, z:real, r:real, g:real, b:real, a:real);
  * @~
  * @see cloud_loaded
  */
-cloud_load_data(name:text, file:text, sep:text, xi:integer, yi:integer, zi:integer);
+cloud_load_data(name:text, sep:text, xi:integer, yi:integer, zi:integer);
 
 /**
  * @~english
@@ -234,7 +234,7 @@ cloud_load_data(name:text, file:text, sep:text, xi:integer, yi:integer, zi:integ
  * @~
  * @see cloud_loaded
  */
-cloud_load_data(name:text, file:text, sep:text, xi:integer, yi:integer, zi:integer,
+cloud_load_data(name:text, sep:text, xi:integer, yi:integer, zi:integer,
                 scale:real, ri:real, gi:real, bi:real, ai:real);
 
 /**
@@ -306,14 +306,6 @@ cloud_optimize(name:text);
  * La taille par défaut des points est 1.0.
  */
 cloud_point_size(name:text, s:real);
-
-/**
- * @~english
- * Displays a point cloud.
- * @~french
- * Affiche un nuage de points.
- */
-cloud(name:text);
 
 /**
  * @}
