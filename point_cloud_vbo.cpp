@@ -98,8 +98,6 @@ void PointCloudVBO::draw()
         return PointCloud::draw();
 
     PointCloudFactory * fact = PointCloudFactory::instance();
-    if (!fact->licensed && !fact->tao->blink(4.5, 0.5, 300.0))
-        return;
 
     checkGLContext();
 
@@ -118,7 +116,7 @@ void PointCloudVBO::draw()
     else
     {
         // Activate current document color
-        PointCloudFactory::instance()->tao->SetFillColor();
+        fact->tao->SetFillColor();
     }
 
     if (pointSize > 0)
