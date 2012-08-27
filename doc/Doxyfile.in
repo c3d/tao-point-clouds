@@ -1,6 +1,6 @@
 @INCLUDE = ../../Doxyfile
 PROJECT_NAME = \"Point Cloud\"
-PROJECT_NUMBER = 1.001
+PROJECT_NUMBER = 1.0
 PROJECT_LOGO = ../icon.png
-QHP_NAMESPACE = com.taodyne.TaoPresentations.modules.PointCloud.1.001
+QHP_NAMESPACE = com.taodyne.TaoPresentations.modules.PointCloud.1.0
 QHP_VIRTUAL_FOLDER = PointCloud
