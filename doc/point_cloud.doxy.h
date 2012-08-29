@@ -39,7 +39,7 @@ page "Cube",
  * Permet de créer et d'afficher des nuages de points. Un nuage est identifié
  * par son nom. Les points peuvent être lus depuis un fichier ou ajoutés
  * dynamiquement. Un nuage peut être monochrome, auquel cas tous les points qui
- * le composent ont la couleur courante (cf. @ref color). Ou bien chaque point
+ * le composent ont la couleur courante (cf. @p color). Ou bien chaque point
  * peut avoir sa propre couleur. La taille des points peut être définie pour
  * chaque nuage.
  *
@@ -121,7 +121,7 @@ cloud_random(name:text, n:integer);
  * green, blue and alpha color components take a random value between 0.0
  * and 1.0. @n
  * If the cloud already exists and does not contain colored points, this
- * function behaves like @ref could_random.
+ * function behaves like @ref cloud_random.
  * @~french
  * Remplit un nuage avec des points aléatoires colorés.
  * Similaire à @ref cloud_random, sauf qu'au lieu de prendre la couleur
