@@ -308,5 +308,13 @@ cloud_optimize(name:text);
 cloud_point_size(name:text, s:real);
 
 /**
+ * @~english
+ * Displays a point cloud.
+ * @~french
+ * Affiche un nuage de points.
+ */
+cloud(name:text);
+
+/**
  * @}
  */
