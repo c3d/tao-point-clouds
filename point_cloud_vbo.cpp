@@ -194,7 +194,10 @@ bool PointCloudVBO::randomPoints(unsigned n, bool colored)
 {
     bool changed = PointCloud::randomPoints(n, colored);
     if (useVbo() && changed)
+    {
+        updateVbo();
         noOptimize = false;
+    }
     return changed;
 }
 
