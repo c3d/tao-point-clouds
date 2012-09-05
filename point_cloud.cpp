@@ -85,11 +85,11 @@ void PointCloud::removePoints(unsigned n)
     if (n >= size())
         return clear();
 
-    n -= size();
     while (n--)
     {
         points.pop_back();
-        colors.pop_back();
+        if (colored())
+            colors.pop_back();
     }
 }
 
