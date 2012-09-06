@@ -198,7 +198,7 @@ cloud_add(name:text, x:real, y:real, z:real, r:real, g:real, b:real, a:real);
  * @~
  * @see cloud_loaded
  */
-cloud_load_data(name:text, sep:text, xi:integer, yi:integer, zi:integer);
+cloud_load_data(name:text, file:text, sep:text, xi:integer, yi:integer, zi:integer);
 
 /**
  * @~english
@@ -234,7 +234,7 @@ cloud_load_data(name:text, sep:text, xi:integer, yi:integer, zi:integer);
  * @~
  * @see cloud_loaded
  */
-cloud_load_data(name:text, sep:text, xi:integer, yi:integer, zi:integer,
+cloud_load_data(name:text, file:text, sep:text, xi:integer, yi:integer, zi:integer,
                 scale:real, ri:real, gi:real, bi:real, ai:real);
 
 /**
