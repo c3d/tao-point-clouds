@@ -42,7 +42,7 @@ PointCloudFactory::PointCloudFactory(const Tao::ModuleApi *tao)
         sdebug() << "VBO supported: " << vboSupported << "\n";
     if (!licenseTested)
     {
-        licensed = tao->checkImpressOrLicense("PointCloud 1.015");
+        licensed = tao->checkImpressOrLicense("PointCloud 1.002");
         licenseTested = true;
     }
 }
@@ -116,15 +116,6 @@ void PointCloudFactory::render_callback(void *arg)
 }
 
 
-void PointCloudFactory::identify_callback(void *arg)
-// ----------------------------------------------------------------------------
-//   We can't click on point clouds
-// ----------------------------------------------------------------------------
-{
-    (void) arg;
-}
-
-
 void PointCloudFactory::delete_callback(void *arg)
 // ----------------------------------------------------------------------------
 //   Delete point cloud name
@@ -184,10 +175,9 @@ XL::name_p PointCloudFactory::cloud_show(text name)
 //   Show point cloud
 // ----------------------------------------------------------------------------
 {
-    instance()->tao->AddToLayout2(PointCloudFactory::render_callback,
-                                  PointCloudFactory::identify_callback,
-                                  strdup(name.c_str()),
-                                  PointCloudFactory::delete_callback);
+    instance()->tao->addToLayout(PointCloudFactory::render_callback,
+                                 strdup(name.c_str()),
+                                 PointCloudFactory::delete_callback);
     return XL::xl_true;
 }
 
@@ -237,8 +227,6 @@ XL::Name_p PointCloudFactory::cloud_add(XL::Tree_p self,
     PointCloud::Color color;
     if (r >= 0 && g >= 0 && b >= 0 && a >= 0)
         color = PointCloud::Color(r, g, b, a);
-    else if (cloud->colored())
-        color = PointCloud::Color(1,1,1,1);
     bool changed = cloud->addPoint(point, color);
     if (!changed && cloud->error != "")
     {
@@ -304,32 +292,6 @@ XL::Real_p PointCloudFactory::cloud_point_size(text name, float size)
         return new XL::Real(0.0);
     cloud->pointSize = size;
     return new XL::Real(size);
-}
-
-
-XL::Name_p PointCloudFactory::cloud_point_sprites(text name, bool enabled)
-// ----------------------------------------------------------------------------
-//   Sets the GL point size for the cloud
-// ----------------------------------------------------------------------------
-{
-    PointCloud *cloud = instance()->cloud(name);
-    if (!cloud)
-        return XL::xl_false;
-    cloud->pointSprites = enabled;
-    return XL::xl_true;
-}
-
-
-XL::Name_p PointCloudFactory::cloud_point_programmable_size(text name, bool on)
-// ----------------------------------------------------------------------------
-//   Sets the GL point size for the cloud
-// ----------------------------------------------------------------------------
-{
-    PointCloud *cloud = instance()->cloud(name);
-    if (!cloud)
-        return XL::xl_false;
-    cloud->pointProgrammableSize = on;
-    return XL::xl_true;
 }
 
 

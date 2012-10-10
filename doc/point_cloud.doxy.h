@@ -2,8 +2,7 @@
  * @~english
  * @taomoduledescription{PointCloud, Point clouds}
  *
- * <tt>import PointCloud</tt> - Creates and displays point clouds.
- * A cloud is identified by its name.
+ * Creates and displays point clouds. A cloud is identified by its name.
  * Point data may be read from a file, or added dynamically. A point cloud
  * may be monochrome (all points having the same color attributes: the
  * current ones) or each point can have its own color. The point size can
@@ -37,8 +36,7 @@ page "Cube",
  * @~french
  * @taomoduledescription{PointCloud, Nuages de points}
  *
- * <tt>import PointCloud</tt> - Permet de créer et d'afficher des nuages de points.
- * Un nuage est identifié
+ * Permet de créer et d'afficher des nuages de points. Un nuage est identifié
  * par son nom. Les points peuvent être lus depuis un fichier ou ajoutés
  * dynamiquement. Un nuage peut être monochrome, auquel cas tous les points qui
  * le composent ont la couleur courante (cf. @p color). Ou bien chaque point
@@ -181,8 +179,7 @@ cloud_add(name:text, x:real, y:real, z:real, r:real, g:real, b:real, a:real);
  * the format is <tt>z,y,x</tt> you would pass <tt>xi = 3</tt>,
  * <tt>yi = 2</tt> and <tt>zi = 1</tt>. @n
  * File load occurs in the background. Use @ref cloud_loaded to know when
- * load is complete.@n
- * If the file changes after being loaded, it is reloaded automatically.
+ * load is complete.
  * @~french
  * Crée un nuage de points à partir d'un fichier de valeurs numériques.
  * Le nuage est créé s'il n'existe pas. Mais s'il existe, les points qu'il
@@ -197,9 +194,7 @@ cloud_add(name:text, x:real, y:real, z:real, r:real, g:real, b:real, a:real);
  * valeurs correctes sont <tt>xi = 3</tt>, <tt>yi = 2</tt> et <tt>zi = 1</tt>.
  * @n
  * Le chargement s'effectue en tâche de fond. Utilisez @ref cloud_loaded pour
- * savoir si le chargement est terminé.@n
- * Si le fichier est modifié après avoir été chargé, il est rechargé
- * automatiquement.
+ * savoir si le chargement est terminé.
  * @~
  * @see cloud_loaded
  */
@@ -216,7 +211,7 @@ cloud_load_data(name:text, file:text, sep:text, xi:integer, yi:integer, zi:integ
  * file in <tt>x,y,z,r,g,b</tt> format with no alpha channel. To force alpha
  * to 1.0, you would pass
  * <tt>xi=1 yi=2 zi=3 ri=4 gi=5 bi=6 ai=-1.0</tt>. @n
- * @p scale is a scaling factor applied to any color value
+ * @p scale is a scaling factor applied to any value
  * read from the file. Scaling is not applied to constant values (passed as
  * negative numbers). The typical use case for @p scale is to adapt color
  * values in the 0-255 range into the expected 0.0-1.0 range: simply set
@@ -231,8 +226,7 @@ cloud_load_data(name:text, file:text, sep:text, xi:integer, yi:integer, zi:integ
  * que le fichier soit au format <tt>x,y,z,r,g,b</tt> sans canal alpha. Pour
  * forcer alpha à 1.0, il faut passer
  * <tt>xi=1 yi=2 zi=3 ri=4 gi=5 bi=6 ai=-1.0</tt>. @n
- * @p scale est un facteur multiplicatif qui s'applique à toute valeur de
- * couleur lue
+ * @p scale est un facteur multiplicatif qui s'applique à toute valeur lue
  * depuis le fichier. Ce facteur ne s'applique pas aux valeurs constantes
  * (passées sous forme de nombres négatifs). L'utilisation typique de @p scale
  * est d'adapter des couleurs entre 0 et 255 à l'échelle attendue, entre 0.0 à
@@ -320,47 +314,6 @@ cloud_point_size(name:text, s:real);
  * Affiche un nuage de points.
  */
 cloud(name:text);
-
-/**
- * @~english
- * Enables or disables point sprites mode.
- * Use this mode to show an image at the location of each point. When this
- * mode is active, the following OpenGL calls are made before the cloud is
- * drawn:
- * @~french
- * Permet d'activer le mode sprites.
- * Utilisez ce mode pour afficher une image à l'emplacement de chaque point.
- * Lorsque le mode sprites est actif, les appels suivants sont effectués
- * avant le tracé du nuage de point :
- * @~
- * @code
-glEnable(GL_POINT_SPRITE);
-glTexEnvi(GL_POINT_SPRITE, GL_COORD_REPLACE, GL_TRUE);
-glPointParameteri(GL_POINT_SPRITE_COORD_ORIGIN, GL_LOWER_LEFT);
- * @endcode
- * @since 1.013
- */
-cloud_point_sprites(name:text, on:boolean);
-
-
-/**
- * @~english
- * Enables or disables programmable point size.
- * Use this mode to enable a shader to set the point size using gl_PointSize.
- * When this mode is active, the following code is activated before
- * drawing points:
- * @~french
- * Permet d'activer le mode programmable pour les tailles de points.
- * Utilisez ce mode pour pouvoir changer la taille des points de façon
- * dynamique à l'intérieur d'un programme de shader. Dans ce mode, le code
- * suivant est activé avant le tracé des points:
- * @~
- * @code
-glEnable(GL_PROGRAM_POINT_SIZE);
- * @endcode
- * @since 1.016
- */
-cloud_point_sprites(name:text, on:boolean);
 
 /**
  * @}
