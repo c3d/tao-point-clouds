@@ -26,8 +26,6 @@
 #include "basics.h"  // From XLR
 #include <QString>
 #include <QRunnable>
-#include <QNetworkAccessManager>
-#include <QNetworkReply>
 #include <vector>
 
 
@@ -90,8 +88,6 @@ public:
     float      loaded;  // -1.0 default, [0.0..1.0[ loading, 1.0 loaded
     text       folder;  // When cloud is loaded from a file
     float      pointSize;
-    bool       pointSprites;
-    bool       pointProgrammableSize;
 
 protected:
     typedef std::vector<Point>  point_vec;
@@ -100,15 +96,6 @@ protected:
 protected:
     virtual std::ostream &  debug();
     bool                    loadInProgress();
-    void                    reload();
-    void                    loadFromStream(QIODevice *io);
-    void                    replyFinished(QNetworkReply *);
-
-protected:
-    static void             fileChanged(std::string path,
-                                        std::string absolutePath,
-                                        void * userData);
-
 
 protected:
     text       name;
@@ -117,11 +104,6 @@ protected:
 
     // When cloud is loaded from a file
     text       file;
-    void     * fileMonitor;
-
-    // When cloud is loaded from a URL
-    QNetworkAccessManager *network;
-    QNetworkReply         *networkReply;
 
     // When cloud is random
     unsigned   nbRandom;
