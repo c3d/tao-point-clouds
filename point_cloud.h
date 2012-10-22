@@ -88,6 +88,7 @@ public:
     float      loaded;  // -1.0 default, [0.0..1.0[ loading, 1.0 loaded
     text       folder;  // When cloud is loaded from a file
     float      pointSize;
+    bool       pointSprites;
 
 protected:
     typedef std::vector<Point>  point_vec;

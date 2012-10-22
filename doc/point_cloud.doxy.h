@@ -316,5 +316,25 @@ cloud_point_size(name:text, s:real);
 cloud(name:text);
 
 /**
+ * @~english
+ * Enables or disables point sprites mode.
+ * Use this mode to show an image at the location of each point. When this
+ * mode is active, the following OpenGL calls are made before the cloud is
+ * drawn:
+ * @~french
+ * Permet d'activer le mode sprites.
+ * Utilisez ce mode pour afficher une image à l'emplacement de chaque point.
+ * Lorsque le mode sprites est actif, les appels suivants sont effectués
+ * avant le tracé du nuage de point :
+ * @~
+ * @code
+glEnable(GL_POINT_SPRITE);
+glTexEnvi(GL_POINT_SPRITE, GL_COORD_REPLACE, GL_TRUE);
+ * @endcode
+ * @since 1.013
+ */
+cloud_point_sprites(name:text, on:boolean);
+
+/**
  * @}
  */

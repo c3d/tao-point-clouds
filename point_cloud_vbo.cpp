@@ -124,6 +124,12 @@ void PointCloudVBO::draw()
         glPushAttrib(GL_POINT_BIT);
         glPointSize(pointSize);
     }
+    if (pointSprites)
+    {
+        glEnable(GL_POINT_SPRITE);
+        glTexEnvi(GL_POINT_SPRITE, GL_COORD_REPLACE, GL_TRUE);
+        fact->tao->SetTextures();
+    }
 
     glEnableClientState(GL_VERTEX_ARRAY);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -134,6 +140,11 @@ void PointCloudVBO::draw()
     if (colored())
         glDisableClientState(GL_COLOR_ARRAY);
 
+    if (pointSprites)
+    {
+        glDisable(GL_POINT_SPRITE);
+        glTexEnvi(GL_POINT_SPRITE, GL_COORD_REPLACE, GL_FALSE);
+    }
     if (pointSize > 0)
         glPopAttrib();
 

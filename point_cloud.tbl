@@ -145,3 +145,11 @@ PREFIX(CloudPointSize,  real,  "cloud_point_size",
        GROUP(pointcloud)
        SYNOPSIS("Set the point size.")
        DESCRIPTION("Sets the GL point size of the cloud."))
+PREFIX(CloudPointSprites,  boolean,  "cloud_point_sprites",
+       PARM(name, text, "The name of the point cloud")
+       PARM(on, boolean, "True to enable point sprites"),
+       return PointCloudFactory::cloud_point_sprites(name, on),
+       GROUP(pointcloud)
+       SYNOPSIS("Enables or disables point sprites.")
+       DESCRIPTION("Enables point sprites [glEnable(GL_POINT_SPRITE) "
+                   "and glTexEnvi(GL_POINT_SPRITE, GL_COORD_REPLACE, GL_TRUE)]"))
