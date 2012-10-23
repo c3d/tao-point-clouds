@@ -54,6 +54,7 @@ public:
     static void                destroy();
 
     static void          render_callback(void *arg);
+    static void          identify_callback(void *arg);
     static void          delete_callback(void *arg);
 
     // XL interface
