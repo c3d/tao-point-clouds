@@ -116,6 +116,15 @@ void PointCloudFactory::render_callback(void *arg)
 }
 
 
+void PointCloudFactory::identify_callback(void *arg)
+// ----------------------------------------------------------------------------
+//   We can't click on point clouds
+// ----------------------------------------------------------------------------
+{
+    (void) arg;
+}
+
+
 void PointCloudFactory::delete_callback(void *arg)
 // ----------------------------------------------------------------------------
 //   Delete point cloud name
@@ -175,9 +184,10 @@ XL::name_p PointCloudFactory::cloud_show(text name)
 //   Show point cloud
 // ----------------------------------------------------------------------------
 {
-    instance()->tao->addToLayout(PointCloudFactory::render_callback,
-                                 strdup(name.c_str()),
-                                 PointCloudFactory::delete_callback);
+    instance()->tao->AddToLayout2(PointCloudFactory::render_callback,
+                                  PointCloudFactory::identify_callback,
+                                  strdup(name.c_str()),
+                                  PointCloudFactory::delete_callback);
     return XL::xl_true;
 }
 
