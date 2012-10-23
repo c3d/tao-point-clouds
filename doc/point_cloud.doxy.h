@@ -211,7 +211,7 @@ cloud_load_data(name:text, file:text, sep:text, xi:integer, yi:integer, zi:integ
  * file in <tt>x,y,z,r,g,b</tt> format with no alpha channel. To force alpha
  * to 1.0, you would pass
  * <tt>xi=1 yi=2 zi=3 ri=4 gi=5 bi=6 ai=-1.0</tt>. @n
- * @p scale is a scaling factor applied to any value
+ * @p scale is a scaling factor applied to any color value
  * read from the file. Scaling is not applied to constant values (passed as
  * negative numbers). The typical use case for @p scale is to adapt color
  * values in the 0-255 range into the expected 0.0-1.0 range: simply set
@@ -226,7 +226,8 @@ cloud_load_data(name:text, file:text, sep:text, xi:integer, yi:integer, zi:integ
  * que le fichier soit au format <tt>x,y,z,r,g,b</tt> sans canal alpha. Pour
  * forcer alpha à 1.0, il faut passer
  * <tt>xi=1 yi=2 zi=3 ri=4 gi=5 bi=6 ai=-1.0</tt>. @n
- * @p scale est un facteur multiplicatif qui s'applique à toute valeur lue
+ * @p scale est un facteur multiplicatif qui s'applique à toute valeur de
+ * couleur lue
  * depuis le fichier. Ce facteur ne s'applique pas aux valeurs constantes
  * (passées sous forme de nombres négatifs). L'utilisation typique de @p scale
  * est d'adapter des couleurs entre 0 et 255 à l'échelle attendue, entre 0.0 à
