@@ -78,6 +78,7 @@ public:
                                          float bi = -1.0, float ai = -1.0);
     static XL::Real_p    cloud_loaded(text name);
     static XL::Real_p    cloud_point_size(text name, float sz);
+    static XL::Name_p    cloud_point_sprites(text name, bool enabled);
 
 public:
     const Tao::ModuleApi *  tao;

@@ -42,7 +42,7 @@ PointCloudFactory::PointCloudFactory(const Tao::ModuleApi *tao)
         sdebug() << "VBO supported: " << vboSupported << "\n";
     if (!licenseTested)
     {
-        licensed = tao->checkImpressOrLicense("PointCloud 1.003");
+        licensed = tao->checkImpressOrLicense("PointCloud 1.013");
         licenseTested = true;
     }
 }
@@ -302,6 +302,19 @@ XL::Real_p PointCloudFactory::cloud_point_size(text name, float size)
         return new XL::Real(0.0);
     cloud->pointSize = size;
     return new XL::Real(size);
+}
+
+
+XL::Name_p PointCloudFactory::cloud_point_sprites(text name, bool enabled)
+// ----------------------------------------------------------------------------
+//   Sets the GL point size for the cloud
+// ----------------------------------------------------------------------------
+{
+    PointCloud *cloud = instance()->cloud(name);
+    if (!cloud)
+        return XL::xl_false;
+    cloud->pointSprites = enabled;
+    return XL::xl_true;
 }
 
 

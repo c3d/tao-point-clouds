@@ -34,8 +34,8 @@ PointCloud::PointCloud(text name)
 // ----------------------------------------------------------------------------
 //   Constructor
 // ----------------------------------------------------------------------------
-    : loaded(-1.0), pointSize(-1.0), name(name), nbRandom(0),
-      coloredRandom(false)
+    : loaded(-1.0), pointSize(-1.0), pointSprites(false), name(name),
+      nbRandom(0), coloredRandom(false)
 {}
 
 
@@ -114,6 +114,11 @@ void PointCloud::draw()
         glPushAttrib(GL_POINT_BIT);
         glPointSize(pointSize);
     }
+    if (pointSprites)
+    {
+        glEnable(GL_POINT_SPRITE);
+        glTexEnvi(GL_POINT_SPRITE, GL_COORD_REPLACE, GL_TRUE);
+    }
 
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_COLOR_ARRAY);
@@ -123,6 +128,11 @@ void PointCloud::draw()
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_COLOR_ARRAY);
 
+    if (pointSprites)
+    {
+        glDisable(GL_POINT_SPRITE);
+        glTexEnvi(GL_POINT_SPRITE, GL_COORD_REPLACE, GL_FALSE);
+    }
     if (pointSize > 0)
         glPopAttrib();
 }
