@@ -331,6 +331,7 @@ cloud(name:text);
  * @code
 glEnable(GL_POINT_SPRITE);
 glTexEnvi(GL_POINT_SPRITE, GL_COORD_REPLACE, GL_TRUE);
+glPointParameteri(GL_POINT_SPRITE_COORD_ORIGIN, GL_LOWER_LEFT);
  * @endcode
  * @since 1.013
  */

@@ -118,6 +118,7 @@ void PointCloud::draw()
     {
         glEnable(GL_POINT_SPRITE);
         glTexEnvi(GL_POINT_SPRITE, GL_COORD_REPLACE, GL_TRUE);
+        glPointParameteri(GL_POINT_SPRITE_COORD_ORIGIN, GL_LOWER_LEFT);
         fact->tao->SetTextures();
     }
 
@@ -133,6 +134,7 @@ void PointCloud::draw()
     {
         glDisable(GL_POINT_SPRITE);
         glTexEnvi(GL_POINT_SPRITE, GL_COORD_REPLACE, GL_FALSE);
+        glPointParameteri(GL_POINT_SPRITE_COORD_ORIGIN, GL_UPPER_LEFT);
     }
     if (pointSize > 0)
         glPopAttrib();
