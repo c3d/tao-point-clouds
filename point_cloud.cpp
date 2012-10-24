@@ -118,6 +118,7 @@ void PointCloud::draw()
     {
         glEnable(GL_POINT_SPRITE);
         glTexEnvi(GL_POINT_SPRITE, GL_COORD_REPLACE, GL_TRUE);
+        fact->tao->SetTextures();
     }
 
     glEnableClientState(GL_VERTEX_ARRAY);
