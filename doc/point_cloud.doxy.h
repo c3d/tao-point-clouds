@@ -337,6 +337,26 @@ glPointParameteri(GL_POINT_SPRITE_COORD_ORIGIN, GL_LOWER_LEFT);
  */
 cloud_point_sprites(name:text, on:boolean);
 
+
+/**
+ * @~english
+ * Enables or disables programmable point size.
+ * Use this mode to enable a shader to set the point size using gl_PointSize.
+ * When this mode is active, the following code is activated before
+ * drawing points:
+ * @~french
+ * Permet d'activer le mode programmable pour les tailles de points.
+ * Utilisez ce mode pour pouvoir changer la taille des points de façon
+ * dynamique à l'intérieur d'un programme de shader. Dans ce mode, le code
+ * suivant est activé avant le tracé des points:
+ * @~
+ * @code
+glEnable(GL_PROGRAM_POINT_SIZE);
+ * @endcode
+ * @since 1.016
+ */
+cloud_point_sprites(name:text, on:boolean);
+
 /**
  * @}
  */

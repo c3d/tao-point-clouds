@@ -153,3 +153,11 @@ PREFIX(CloudPointSprites,  boolean,  "cloud_point_sprites",
        SYNOPSIS("Enables or disables point sprites.")
        DESCRIPTION("Enables point sprites [glEnable(GL_POINT_SPRITE) "
                    "and glTexEnvi(GL_POINT_SPRITE, GL_COORD_REPLACE, GL_TRUE)]"))
+PREFIX(CloudPointProgrammableSize,  boolean,  "cloud_point_programmable_size",
+       PARM(name, text, "The name of the point cloud")
+       PARM(on, boolean, "True to enable shader-programmable point sizes"),
+       return PointCloudFactory::cloud_point_programmable_size(name, on),
+       GROUP(pointcloud)
+       SYNOPSIS("Enables or disables point sprites.")
+       DESCRIPTION("Enables point sprites [glEnable(GL_POINT_SPRITE) "
+                   "and glTexEnvi(GL_POINT_SPRITE, GL_COORD_REPLACE, GL_TRUE)]"))
