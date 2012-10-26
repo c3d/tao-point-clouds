@@ -128,11 +128,8 @@ void PointCloudVBO::draw()
     {
         glEnable(GL_POINT_SPRITE);
         glTexEnvi(GL_POINT_SPRITE, GL_COORD_REPLACE, GL_TRUE);
-        glPointParameteri(GL_POINT_SPRITE_COORD_ORIGIN, GL_LOWER_LEFT);
         fact->tao->SetTextures();
     }
-    if (pointProgrammableSize)
-        glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
 
     glEnableClientState(GL_VERTEX_ARRAY);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -143,13 +140,10 @@ void PointCloudVBO::draw()
     if (colored())
         glDisableClientState(GL_COLOR_ARRAY);
 
-    if (pointProgrammableSize)
-        glDisable(GL_VERTEX_PROGRAM_POINT_SIZE);
     if (pointSprites)
     {
         glDisable(GL_POINT_SPRITE);
         glTexEnvi(GL_POINT_SPRITE, GL_COORD_REPLACE, GL_FALSE);
-        glPointParameteri(GL_POINT_SPRITE_COORD_ORIGIN, GL_UPPER_LEFT);
     }
     if (pointSize > 0)
         glPopAttrib();

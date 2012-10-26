@@ -42,7 +42,7 @@ PointCloudFactory::PointCloudFactory(const Tao::ModuleApi *tao)
         sdebug() << "VBO supported: " << vboSupported << "\n";
     if (!licenseTested)
     {
-        licensed = tao->checkImpressOrLicense("PointCloud 1.014");
+        licensed = tao->checkImpressOrLicense("PointCloud 1.013");
         licenseTested = true;
     }
 }
@@ -237,8 +237,6 @@ XL::Name_p PointCloudFactory::cloud_add(XL::Tree_p self,
     PointCloud::Color color;
     if (r >= 0 && g >= 0 && b >= 0 && a >= 0)
         color = PointCloud::Color(r, g, b, a);
-    else if (cloud->colored())
-        color = PointCloud::Color(1,1,1,1);
     bool changed = cloud->addPoint(point, color);
     if (!changed && cloud->error != "")
     {
@@ -316,19 +314,6 @@ XL::Name_p PointCloudFactory::cloud_point_sprites(text name, bool enabled)
     if (!cloud)
         return XL::xl_false;
     cloud->pointSprites = enabled;
-    return XL::xl_true;
-}
-
-
-XL::Name_p PointCloudFactory::cloud_point_programmable_size(text name, bool on)
-// ----------------------------------------------------------------------------
-//   Sets the GL point size for the cloud
-// ----------------------------------------------------------------------------
-{
-    PointCloud *cloud = instance()->cloud(name);
-    if (!cloud)
-        return XL::xl_false;
-    cloud->pointProgrammableSize = on;
     return XL::xl_true;
 }
 

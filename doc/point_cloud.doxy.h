@@ -179,8 +179,7 @@ cloud_add(name:text, x:real, y:real, z:real, r:real, g:real, b:real, a:real);
  * the format is <tt>z,y,x</tt> you would pass <tt>xi = 3</tt>,
  * <tt>yi = 2</tt> and <tt>zi = 1</tt>. @n
  * File load occurs in the background. Use @ref cloud_loaded to know when
- * load is complete.@n
- * If the file changes after being loaded, it is reloaded automatically.
+ * load is complete.
  * @~french
  * Crée un nuage de points à partir d'un fichier de valeurs numériques.
  * Le nuage est créé s'il n'existe pas. Mais s'il existe, les points qu'il
@@ -195,9 +194,7 @@ cloud_add(name:text, x:real, y:real, z:real, r:real, g:real, b:real, a:real);
  * valeurs correctes sont <tt>xi = 3</tt>, <tt>yi = 2</tt> et <tt>zi = 1</tt>.
  * @n
  * Le chargement s'effectue en tâche de fond. Utilisez @ref cloud_loaded pour
- * savoir si le chargement est terminé.@n
- * Si le fichier est modifié après avoir été chargé, il est rechargé
- * automatiquement.
+ * savoir si le chargement est terminé.
  * @~
  * @see cloud_loaded
  */
@@ -334,29 +331,8 @@ cloud(name:text);
  * @code
 glEnable(GL_POINT_SPRITE);
 glTexEnvi(GL_POINT_SPRITE, GL_COORD_REPLACE, GL_TRUE);
-glPointParameteri(GL_POINT_SPRITE_COORD_ORIGIN, GL_LOWER_LEFT);
  * @endcode
  * @since 1.013
- */
-cloud_point_sprites(name:text, on:boolean);
-
-
-/**
- * @~english
- * Enables or disables programmable point size.
- * Use this mode to enable a shader to set the point size using gl_PointSize.
- * When this mode is active, the following code is activated before
- * drawing points:
- * @~french
- * Permet d'activer le mode programmable pour les tailles de points.
- * Utilisez ce mode pour pouvoir changer la taille des points de façon
- * dynamique à l'intérieur d'un programme de shader. Dans ce mode, le code
- * suivant est activé avant le tracé des points:
- * @~
- * @code
-glEnable(GL_PROGRAM_POINT_SIZE);
- * @endcode
- * @since 1.016
  */
 cloud_point_sprites(name:text, on:boolean);
 
