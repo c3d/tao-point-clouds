@@ -53,6 +53,8 @@ unsigned PointCloud::size()
 //   Number of points in the cloud
 // ----------------------------------------------------------------------------
 {
+    if (loadInProgress())
+        return 0;
     if (colored())
     {
         Q_ASSERT(points.size() == colors.size());
@@ -114,8 +116,6 @@ void PointCloud::draw()
         glPushAttrib(GL_POINT_BIT);
         glPointSize(pointSize);
     }
-    if (pointProgrammableSize)
-        glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
     if (pointSprites)
     {
         glEnable(GL_POINT_SPRITE);
@@ -123,6 +123,8 @@ void PointCloud::draw()
         glPointParameteri(GL_POINT_SPRITE_COORD_ORIGIN, GL_LOWER_LEFT);
         fact->tao->SetTextures();
     }
+    if (pointProgrammableSize)
+        glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
 
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_COLOR_ARRAY);
@@ -288,11 +290,13 @@ bool PointCloud::loadData(text file, text sep, int xi, int yi, int zi,
             if (colorok)
                 color = Color(r, g, b, a);
         }
+        size();
         if (xok && yok && zok && colorok)
         {
             addPoint(Point(x, y, z), color);
             count++;
         }
+        size();
     }
     while (!line.isNull());
     f.close();
