@@ -237,6 +237,8 @@ XL::Name_p PointCloudFactory::cloud_add(XL::Tree_p self,
     PointCloud::Color color;
     if (r >= 0 && g >= 0 && b >= 0 && a >= 0)
         color = PointCloud::Color(r, g, b, a);
+    else if (cloud->colored())
+        color = PointCloud::Color(1,1,1,1);
     bool changed = cloud->addPoint(point, color);
     if (!changed && cloud->error != "")
     {
