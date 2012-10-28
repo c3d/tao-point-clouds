@@ -134,6 +134,8 @@ void PointCloud::draw()
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_COLOR_ARRAY);
 
+    if (pointProgrammableSize)
+        glDisable(GL_VERTEX_PROGRAM_POINT_SIZE);
     if (pointSprites)
     {
         glDisable(GL_POINT_SPRITE);
