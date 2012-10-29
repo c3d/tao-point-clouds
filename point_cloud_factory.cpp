@@ -318,6 +318,19 @@ XL::Name_p PointCloudFactory::cloud_point_sprites(text name, bool enabled)
 }
 
 
+XL::Name_p PointCloudFactory::cloud_point_programmable_size(text name, bool on)
+// ----------------------------------------------------------------------------
+//   Sets the GL point size for the cloud
+// ----------------------------------------------------------------------------
+{
+    PointCloud *cloud = instance()->cloud(name);
+    if (!cloud)
+        return XL::xl_false;
+    cloud->pointProgrammableSize = on;
+    return XL::xl_true;
+}
+
+
 std::ostream & PointCloudFactory::sdebug()
 // ----------------------------------------------------------------------------
 //   Convenience method to log with a common prefix
