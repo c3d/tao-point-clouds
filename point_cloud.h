@@ -89,6 +89,7 @@ public:
     text       folder;  // When cloud is loaded from a file
     float      pointSize;
     bool       pointSprites;
+    bool       pointProgrammableSize;
 
 protected:
     typedef std::vector<Point>  point_vec;

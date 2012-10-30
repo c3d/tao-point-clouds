@@ -114,6 +114,8 @@ void PointCloud::draw()
         glPushAttrib(GL_POINT_BIT);
         glPointSize(pointSize);
     }
+    if (pointProgrammableSize)
+        glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
     if (pointSprites)
     {
         glEnable(GL_POINT_SPRITE);
