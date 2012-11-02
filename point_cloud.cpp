@@ -35,7 +35,7 @@ PointCloud::PointCloud(text name)
 //   Constructor
 // ----------------------------------------------------------------------------
     : loaded(-1.0), pointSize(-1.0), pointSprites(false), name(name),
-      fileMonitor(0), nbRandom(0), coloredRandom(false)
+      nbRandom(0), coloredRandom(false)
 {}
 
 
@@ -45,7 +45,6 @@ PointCloud::~PointCloud()
 // ----------------------------------------------------------------------------
 {
     interrupt();
-    PointCloudFactory::instance()->tao->deleteFileMonitor(fileMonitor);
 }
 
 
@@ -213,8 +212,22 @@ bool PointCloud::loadData(text file, text sep, int xi, int yi, int zi,
 {
     if (file == this->file)
         return false;
-    loadDataParm = LoadDataParm(file, sep, xi, yi, zi, colorScale,
-                                ri, gi, bi, ai);
+    if (async)
+    {
+        loadDataParm = LoadDataParm(file, sep, xi, yi, zi, colorScale,
+                                    ri, gi, bi, ai);
+        PointCloudFactory::instance()->pool.start(this);
+        return true;
+    }
+    if (xi < 1 || yi < 1 || zi < 1)
+    {
+        error = "Invalid coordinate index value";
+        return false;
+    }
+
+    // colored attribute can't be changed if cloud already exists
+    if (size())
+        colorScale = colored() ? 1.0 : 0.0;
 
     Q_ASSERT(folder != "");
     QString qf = QString::fromUtf8(folder.data(), folder.length());
@@ -228,30 +241,6 @@ bool PointCloud::loadData(text file, text sep, int xi, int yi, int zi,
                       "File path: %1").arg(+path);
         return false;
     }
-
-    PointCloudFactory * fact = PointCloudFactory::instance();
-    if (!fileMonitor)
-    {
-        fileMonitor = fact->tao->newFileMonitor(0, fileChanged, 0, this,
-                                                "PointCloud:" + name);
-        fact->tao->fileMonitorRemoveAllPaths(fileMonitor);
-        fact->tao->fileMonitorAddPath(fileMonitor, path);
-    }
-
-    if (async)
-    {
-        fact->pool.start(this);
-        return true;
-    }
-    if (xi < 1 || yi < 1 || zi < 1)
-    {
-        error = "Invalid coordinate index value";
-        return false;
-    }
-
-    // colored attribute can't be changed if cloud already exists
-    if (size())
-        colorScale = colored() ? 1.0 : 0.0;
 
     IFTRACE(pointcloud)
         debug() << "Loading " << path << "\n";
@@ -348,35 +337,4 @@ bool PointCloud::loadInProgress()
 // ----------------------------------------------------------------------------
 {
     return (loaded >= 0 && loaded < 1.0);
-}
-
-
-void PointCloud::reload()
-// ----------------------------------------------------------------------------
-//   Reload data from file
-// ----------------------------------------------------------------------------
-{
-    IFTRACE(pointcloud)
-        debug() << "Reloading\n";
-
-    clear();
-    file = ""; // Or loadData() would do nothing
-    LoadDataParm &p(loadDataParm);
-    loadData(p.file, p.sep, p.xi, p.yi, p.zi, p.colorScale,
-             p.ri, p.gi, p.bi, p.ai, true);
-}
-
-
-void PointCloud::fileChanged(std::string path,
-                             std::string absolutePath,
-                             void * userData)
-// ----------------------------------------------------------------------------
-//   Callback, called when a file has changed
-// ----------------------------------------------------------------------------
-{
-    Q_UNUSED(path);
-    Q_UNUSED(absolutePath)
-
-    PointCloud * cloud = (PointCloud *)userData;
-    cloud->reload();
 }

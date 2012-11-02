@@ -98,12 +98,6 @@ protected:
 protected:
     virtual std::ostream &  debug();
     bool                    loadInProgress();
-    void                    reload();
-
-protected:
-    static void             fileChanged(std::string path,
-                                        std::string absolutePath,
-                                        void * userData);
 
 protected:
     text       name;
@@ -112,7 +106,6 @@ protected:
 
     // When cloud is loaded from a file
     text       file;
-    void     * fileMonitor;
 
     // When cloud is random
     unsigned   nbRandom;
