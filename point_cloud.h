@@ -26,6 +26,8 @@
 #include "basics.h"  // From XLR
 #include <QString>
 #include <QRunnable>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
 #include <vector>
 
 
@@ -99,11 +101,14 @@ protected:
     virtual std::ostream &  debug();
     bool                    loadInProgress();
     void                    reload();
+    void                    loadFromStream(QIODevice *io);
+    void                    replyFinished(QNetworkReply *);
 
 protected:
     static void             fileChanged(std::string path,
                                         std::string absolutePath,
                                         void * userData);
+
 
 protected:
     text       name;
@@ -113,6 +118,10 @@ protected:
     // When cloud is loaded from a file
     text       file;
     void     * fileMonitor;
+
+    // When cloud is loaded from a URL
+    QNetworkAccessManager *network;
+    QNetworkReply         *networkReply;
 
     // When cloud is random
     unsigned   nbRandom;
