@@ -49,7 +49,7 @@ PointCloud::~PointCloud()
     interrupt();
     PointCloudFactory::instance()->tao->deleteFileMonitor(fileMonitor);
     if (network)
-        network->deleteLater();
+        delete network;
     if (networkReply)
         networkReply->deleteLater();
 }
