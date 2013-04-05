@@ -33,13 +33,18 @@ PointCloudFactory::PointCloudFactory(const Tao::ModuleApi *tao)
 // ----------------------------------------------------------------------------
 //   Constructor
 // ----------------------------------------------------------------------------
-    : tao(tao)
+    : tao(tao), licensed(false), licenseTested(false)
 {
     glewInit();
     QString extensions((const char *)glGetString(GL_EXTENSIONS));
     vboSupported = extensions.contains("ARB_vertex_buffer_object");
     IFTRACE(pointcloud)
         sdebug() << "VBO supported: " << vboSupported << "\n";
+    if (!licenseTested)
+    {
+        licensed = tao->checkImpressOrLicense("PointCloud 1.015");
+        licenseTested = true;
+    }
 }
 
 
