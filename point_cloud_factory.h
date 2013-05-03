@@ -83,7 +83,7 @@ public:
 
 public:
     const Tao::ModuleApi *  tao;
-    bool                    vboSupported, licensed;
+    bool                    vboSupported;
     ThreadPool              pool;
 
 protected:
@@ -94,7 +94,6 @@ protected:
 
 protected:
     cloud_map    clouds;
-    bool         licenseTested;
 
 protected:
     static PointCloudFactory * factory;
