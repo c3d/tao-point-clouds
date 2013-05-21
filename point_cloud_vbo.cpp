@@ -22,10 +22,6 @@
 
 #include "point_cloud_vbo.h"
 #include "point_cloud_factory.h"
-#include "tao/graphic_state.h"
-
-DLL_PUBLIC Tao::GraphicState * graphic_state = NULL;
-#define GL (*graphic_state)
 
 
 PointCloudVBO::PointCloudVBO(text name)
@@ -222,14 +218,13 @@ bool PointCloudVBO::randomPoints(unsigned n, bool colored)
 
 bool PointCloudVBO::loadData(text file, text sep, int xi, int yi, int zi,
                              float colorScale,
-                             float ri, float gi, float bi, float ai,
-                             bool async)
+                             float ri, float gi, float bi, float ai)
 // ----------------------------------------------------------------------------
 //   Load points from a file
 // ----------------------------------------------------------------------------
 {
     bool changed = PointCloud::loadData(file, sep, xi, yi, zi, colorScale,
-                                        ri, gi, bi, ai, async);
+                                        ri, gi, bi, ai);
     if (useVbo() && changed)
     {
         updateVbo();
