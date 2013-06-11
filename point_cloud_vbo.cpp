@@ -98,8 +98,6 @@ void PointCloudVBO::draw()
 //   Draw cloud
 // ----------------------------------------------------------------------------
 {
-    GL.Sync();
-
     if (!useVbo())
         return PointCloud::draw();
 
