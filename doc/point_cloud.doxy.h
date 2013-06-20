@@ -1,8 +1,8 @@
 /**
  * @~english
  * @taomoduledescription{PointCloud, Point clouds}
- * <tt>import PointCloud</tt> - Creates and displays point clouds.@n
  *
+ * <tt>import PointCloud</tt> - Creates and displays point clouds.
  * A cloud is identified by its name.
  * Point data may be read from a file, or added dynamically. A point cloud
  * may be monochrome (all points having the same color attributes: the
@@ -36,8 +36,8 @@ page "Cube",
  *
  * @~french
  * @taomoduledescription{PointCloud, Nuages de points}
- * <tt>import PointCloud</tt> - Permet de créer et d'afficher des nuages de points.@n
  *
+ * <tt>import PointCloud</tt> - Permet de créer et d'afficher des nuages de points.
  * Un nuage est identifié
  * par son nom. Les points peuvent être lus depuis un fichier ou ajoutés
  * dynamiquement. Un nuage peut être monochrome, auquel cas tous les points qui
