@@ -22,6 +22,10 @@
 
 #include "point_cloud_vbo.h"
 #include "point_cloud_factory.h"
+#include "tao/graphic_state.h"
+
+DLL_PUBLIC Tao::GraphicState * graphic_state = NULL;
+#define GL (*graphic_state)
 
 
 PointCloudVBO::PointCloudVBO(text name)
