@@ -121,7 +121,7 @@ void PointCloud::draw()
     if (pointSize > 0)
     {
         glPushAttrib(GL_POINT_BIT);
-        glPointSize(pointSize * fact->tao->DevicePixelRatio());
+        glPointSize(pointSize);
     }
     if (pointSprites)
     {
