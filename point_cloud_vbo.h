@@ -47,7 +47,8 @@ public:
     virtual bool      loadData(text file, text sep, int xi, int yi, int zi,
                                float colorScale = 0.0,
                                float ri = -1.0, float gi = -1.0,
-                               float bi = -1.0, float ai = -1.0);
+                               float bi = -1.0, float ai = -1.0,
+                               bool async = false);
     virtual bool      colored();
 
 protected:
