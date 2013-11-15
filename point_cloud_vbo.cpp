@@ -126,7 +126,7 @@ void PointCloudVBO::draw()
     if (pointSize > 0)
     {
         glPushAttrib(GL_POINT_BIT);
-        glPointSize(pointSize);
+        glPointSize(pointSize * fact->tao->DevicePixelRatio());
     }
     if (pointSprites)
     {
