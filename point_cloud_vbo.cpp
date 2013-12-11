@@ -126,7 +126,7 @@ void PointCloudVBO::draw()
     if (pointSize > 0)
     {
         glPushAttrib(GL_POINT_BIT);
-        glPointSize(pointSize);
+        glPointSize(pointSize * fact->tao->DevicePixelRatio());
     }
     if (pointSprites)
     {
@@ -222,13 +222,14 @@ bool PointCloudVBO::randomPoints(unsigned n, bool colored)
 
 bool PointCloudVBO::loadData(text file, text sep, int xi, int yi, int zi,
                              float colorScale,
-                             float ri, float gi, float bi, float ai)
+                             float ri, float gi, float bi, float ai,
+                             bool async)
 // ----------------------------------------------------------------------------
 //   Load points from a file
 // ----------------------------------------------------------------------------
 {
     bool changed = PointCloud::loadData(file, sep, xi, yi, zi, colorScale,
-                                        ri, gi, bi, ai);
+                                        ri, gi, bi, ai, async);
     if (useVbo() && changed)
     {
         updateVbo();
