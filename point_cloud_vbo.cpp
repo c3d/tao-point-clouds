@@ -23,6 +23,8 @@
 #include "point_cloud_vbo.h"
 #include "point_cloud_factory.h"
 #include "tao/graphic_state.h"
+#include <QCoreApplication>
+#include <QThread>
 
 DLL_PUBLIC Tao::GraphicState * graphic_state = NULL;
 #define GL (*graphic_state)
@@ -325,6 +327,15 @@ void PointCloudVBO::updateVbo()
 // ----------------------------------------------------------------------------
 {
     Q_ASSERT(!optimized);
+
+    if (QThread::currentThread() != qApp->thread())
+    {
+        // OpenGL functions may be called only from the main thread, which
+        // owns the GL context
+        IFTRACE(pointcloud)
+            debug() << "Not updating VBO (not main thread)\n";
+        return;
+    }
 
     IFTRACE(pointcloud)
         debug() << "Updating VBO #" << vbo << " (" << size() << " points)\n";
