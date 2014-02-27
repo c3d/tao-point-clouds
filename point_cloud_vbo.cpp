@@ -22,6 +22,12 @@
 
 #include "point_cloud_vbo.h"
 #include "point_cloud_factory.h"
+#include "tao/graphic_state.h"
+#include <QCoreApplication>
+#include <QThread>
+
+DLL_PUBLIC Tao::GraphicState * graphic_state = NULL;
+#define GL (*graphic_state)
 
 
 PointCloudVBO::PointCloudVBO(text name)
@@ -122,7 +128,7 @@ void PointCloudVBO::draw()
     if (pointSize > 0)
     {
         glPushAttrib(GL_POINT_BIT);
-        glPointSize(pointSize);
+        glPointSize(pointSize * fact->tao->DevicePixelRatio());
     }
     if (pointSprites)
     {
@@ -218,13 +224,14 @@ bool PointCloudVBO::randomPoints(unsigned n, bool colored)
 
 bool PointCloudVBO::loadData(text file, text sep, int xi, int yi, int zi,
                              float colorScale,
-                             float ri, float gi, float bi, float ai)
+                             float ri, float gi, float bi, float ai,
+                             bool async)
 // ----------------------------------------------------------------------------
 //   Load points from a file
 // ----------------------------------------------------------------------------
 {
     bool changed = PointCloud::loadData(file, sep, xi, yi, zi, colorScale,
-                                        ri, gi, bi, ai);
+                                        ri, gi, bi, ai, async);
     if (useVbo() && changed)
     {
         updateVbo();
@@ -320,6 +327,15 @@ void PointCloudVBO::updateVbo()
 // ----------------------------------------------------------------------------
 {
     Q_ASSERT(!optimized);
+
+    if (QThread::currentThread() != qApp->thread())
+    {
+        // OpenGL functions may be called only from the main thread, which
+        // owns the GL context
+        IFTRACE(pointcloud)
+            debug() << "Not updating VBO (not main thread)\n";
+        return;
+    }
 
     IFTRACE(pointcloud)
         debug() << "Updating VBO #" << vbo << " (" << size() << " points)\n";

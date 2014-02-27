@@ -1,8 +1,8 @@
 /**
  * @~english
  * @taomoduledescription{PointCloud, Point clouds}
+ * <tt>import PointCloud</tt> - Creates and displays point clouds.@n
  *
- * <tt>import PointCloud</tt> - Creates and displays point clouds.
  * A cloud is identified by its name.
  * Point data may be read from a file, or added dynamically. A point cloud
  * may be monochrome (all points having the same color attributes: the
@@ -10,7 +10,7 @@
  * be defined for each cloud.
  *
  * Here is an example:
- * @code
+@code
 import PointCloud
 
 Created -> 0
@@ -29,15 +29,15 @@ page "Cube",
     rotatex 5 * page_time
     color "white"
     cloud "Cube"
- * @endcode
+@endcode
  * @image html Cube.png "Point cloud example"
  *
  * @endtaomoduledescription{PointCloud}
  *
  * @~french
  * @taomoduledescription{PointCloud, Nuages de points}
+ * <tt>import PointCloud</tt> - Permet de créer et d'afficher des nuages de points.@n
  *
- * <tt>import PointCloud</tt> - Permet de créer et d'afficher des nuages de points.
  * Un nuage est identifié
  * par son nom. Les points peuvent être lus depuis un fichier ou ajoutés
  * dynamiquement. Un nuage peut être monochrome, auquel cas tous les points qui
@@ -46,7 +46,7 @@ page "Cube",
  * chaque nuage.
  *
  * Voici un exemple:
- * @code
+@code
 import PointCloud
 
 Créé -> 0
@@ -65,7 +65,7 @@ page "Cube",
     rotatex 5 * page_time
     color "white"
     cloud "Cube"
- * @endcode
+@endcode
  * @image html Cube.png "Point cloud example"
  *
  * @endtaomoduledescription{PointCloud}
@@ -333,11 +333,11 @@ cloud(name:text);
  * Lorsque le mode sprites est actif, les appels suivants sont effectués
  * avant le tracé du nuage de point :
  * @~
- * @code
+@code
 glEnable(GL_POINT_SPRITE);
 glTexEnvi(GL_POINT_SPRITE, GL_COORD_REPLACE, GL_TRUE);
 glPointParameteri(GL_POINT_SPRITE_COORD_ORIGIN, GL_LOWER_LEFT);
- * @endcode
+@endcode
  * @since 1.013
  */
 cloud_point_sprites(name:text, on:boolean);
@@ -355,9 +355,9 @@ cloud_point_sprites(name:text, on:boolean);
  * dynamique à l'intérieur d'un programme de shader. Dans ce mode, le code
  * suivant est activé avant le tracé des points:
  * @~
- * @code
+@code
 glEnable(GL_PROGRAM_POINT_SIZE);
- * @endcode
+@endcode
  * @since 1.016
  */
 cloud_point_sprites(name:text, on:boolean);
