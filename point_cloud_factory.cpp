@@ -226,7 +226,10 @@ XL::Name_p PointCloudFactory::cloud_add(XL::Tree_p self,
 {
     PointCloud *cloud = instance()->cloud(name, LM_CREATE | LM_CLEAR_OPTIMIZED);
     if (!cloud)
+    {
+        XL::Ooops("PointsCloud: No cloud named $2 for $1", self).Arg(name);
         return XL::xl_false;
+    }
 
     PointCloud::Point point(x->value, y->value, z->value);
     PointCloud::Color color;
@@ -237,7 +240,8 @@ XL::Name_p PointCloudFactory::cloud_add(XL::Tree_p self,
     bool changed = cloud->addPoint(point, color);
     if (!changed && cloud->error != "")
     {
-        XL::Ooops(cloud->error, self);
+        XL::Ooops("PointsCloud: Error adding to cloud $2 in $1: $3", self)
+            .Arg(name).Arg(cloud->error);
         cloud->error.clear();
     }
 
@@ -257,7 +261,10 @@ XL::Name_p PointCloudFactory::cloud_load_data(XL::Tree_p self,
 {
     PointCloud *cloud = instance()->cloud(name, LM_CREATE);
     if (!cloud)
+    {
+        XL::Ooops("PointsCloud: No cloud named $2 for $1", self).Arg(name);
         return XL::xl_false;
+    }
 
     if (cloud->folder == "")
         cloud->folder = instance()->tao->currentDocumentFolder();
@@ -265,7 +272,8 @@ XL::Name_p PointCloudFactory::cloud_load_data(XL::Tree_p self,
                                    ri, gi, bi, ai, true);
     if (!changed && cloud->error != "")
     {
-        XL::Ooops(cloud->error, self);
+        XL::Ooops("PointsCloud: Error loading cloud $2 from $3 in $1: $4",
+                  self).Arg(name).Arg(file).Arg(cloud->error);
         cloud->error.clear();
     }
 
