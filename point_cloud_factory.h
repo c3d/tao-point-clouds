@@ -28,7 +28,7 @@
 #include <QFlags>
 #include <map>
 
-class PointCloud;
+struct PointCloud;
 
 class PointCloudFactory
 // ----------------------------------------------------------------------------
