@@ -23,6 +23,7 @@
 #include "point_cloud_factory.h"
 #include "point_cloud.h"
 #include "point_cloud_vbo.h"
+#include "graphic_state.h"
 #include <QEvent>
 
 
@@ -35,7 +36,6 @@ PointCloudFactory::PointCloudFactory(const Tao::ModuleApi *tao)
 // ----------------------------------------------------------------------------
     : tao(tao)
 {
-    glewInit();
     QString extensions((const char *)glGetString(GL_EXTENSIONS));
     vboSupported = extensions.contains("ARB_vertex_buffer_object");
     IFTRACE(pointcloud)
@@ -347,6 +347,7 @@ std::ostream & PointCloudFactory::sdebug()
 
 
 XL_DEFINE_TRACES
+DEFINE_MODULE_GL;
 
 int module_init(const Tao::ModuleApi *api, const Tao::ModuleInfo *mod)
 // ----------------------------------------------------------------------------

@@ -23,7 +23,7 @@
 // ****************************************************************************
 
 #include "point_cloud.h"
-#include "tao/tao_gl.h"
+#include <QGLContext>
 
 
 class PointCloudVBO : public PointCloud

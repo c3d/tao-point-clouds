@@ -26,10 +26,6 @@
 #include <QCoreApplication>
 #include <QThread>
 
-DLL_PUBLIC Tao::GraphicState * graphic_state = NULL;
-#define GL (*graphic_state)
-
-
 PointCloudVBO::PointCloudVBO(text name)
 // ----------------------------------------------------------------------------
 //   Initialize object
@@ -115,9 +111,9 @@ void PointCloudVBO::draw()
 
     if (colored())
     {
-        glEnableClientState(GL_COLOR_ARRAY);
-        glBindBuffer(GL_ARRAY_BUFFER, colorVbo);
-        glColorPointer(4, GL_FLOAT, sizeof(Color), 0);
+        GL.EnableClientState(GL_COLOR_ARRAY);
+        GL.BindBuffer(GL_ARRAY_BUFFER, colorVbo);
+        GL.ColorPointer(4, GL_FLOAT, sizeof(Color), 0);
     }
     else
     {
@@ -128,34 +124,34 @@ void PointCloudVBO::draw()
     if (pointSize > 0)
     {
         glPushAttrib(GL_POINT_BIT);
-        glPointSize(pointSize * fact->tao->DevicePixelRatio());
+        GL.PointSize(pointSize * fact->tao->DevicePixelRatio());
     }
     if (pointSprites)
     {
-        glEnable(GL_POINT_SPRITE);
-        glTexEnvi(GL_POINT_SPRITE, GL_COORD_REPLACE, GL_TRUE);
-        glPointParameteri(GL_POINT_SPRITE_COORD_ORIGIN, GL_LOWER_LEFT);
+        GL.Enable(GL_POINT_SPRITE);
+        GL.TexEnv(GL_POINT_SPRITE, GL_COORD_REPLACE, GL_TRUE);
+        GL.PointParameter(GL_POINT_SPRITE_COORD_ORIGIN, GL_LOWER_LEFT);
         fact->tao->SetTextures();
     }
     if (pointProgrammableSize)
-        glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
+        GL.Enable(GL_VERTEX_PROGRAM_POINT_SIZE);
 
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glVertexPointer(3, GL_FLOAT, sizeof(Point), 0);
-    glDrawArrays(GL_POINTS, 0, size());
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glDisableClientState(GL_VERTEX_ARRAY);
+    GL.EnableClientState(GL_VERTEX_ARRAY);
+    GL.BindBuffer(GL_ARRAY_BUFFER, vbo);
+    GL.VertexPointer(3, GL_FLOAT, sizeof(Point), 0);
+    GL.DrawArrays(GL_POINTS, 0, size());
+    GL.BindBuffer(GL_ARRAY_BUFFER, 0);
+    GL.DisableClientState(GL_VERTEX_ARRAY);
     if (colored())
-        glDisableClientState(GL_COLOR_ARRAY);
+        GL.DisableClientState(GL_COLOR_ARRAY);
 
     if (pointProgrammableSize)
-        glDisable(GL_VERTEX_PROGRAM_POINT_SIZE);
+        GL.Disable(GL_VERTEX_PROGRAM_POINT_SIZE);
     if (pointSprites)
     {
-        glDisable(GL_POINT_SPRITE);
-        glTexEnvi(GL_POINT_SPRITE, GL_COORD_REPLACE, GL_FALSE);
-        glPointParameteri(GL_POINT_SPRITE_COORD_ORIGIN, GL_UPPER_LEFT);
+        GL.Disable(GL_POINT_SPRITE);
+        GL.TexEnv(GL_POINT_SPRITE, GL_COORD_REPLACE, GL_FALSE);
+        GL.PointParameter(GL_POINT_SPRITE_COORD_ORIGIN, GL_UPPER_LEFT);
     }
     if (pointSize > 0)
         glPopAttrib();
@@ -340,10 +336,10 @@ void PointCloudVBO::updateVbo()
     IFTRACE(pointcloud)
         debug() << "Updating VBO #" << vbo << " (" << size() << " points)\n";
 
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, size()*sizeof(Point), &points[0].x,
+    GL.BindBuffer(GL_ARRAY_BUFFER, vbo);
+    GL.BufferData(GL_ARRAY_BUFFER, size()*sizeof(Point), &points[0].x,
                  GL_STATIC_DRAW);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    GL.BindBuffer(GL_ARRAY_BUFFER, 0);
 
     if (colored())
     {
@@ -354,10 +350,10 @@ void PointCloudVBO::updateVbo()
             debug() << "Updating VBO #" << colorVbo << " (" << size()
                     << " colors)\n";
 
-        glBindBuffer(GL_ARRAY_BUFFER, colorVbo);
-        glBufferData(GL_ARRAY_BUFFER, size()*sizeof(Color), &colors[0].r,
+        GL.BindBuffer(GL_ARRAY_BUFFER, colorVbo);
+        GL.BufferData(GL_ARRAY_BUFFER, size()*sizeof(Color), &colors[0].r,
                      GL_STATIC_DRAW);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        GL.BindBuffer(GL_ARRAY_BUFFER, 0);
     }
     dirty = false;
 }
@@ -368,7 +364,7 @@ void PointCloudVBO::genPointBuffer()
 //   Allocate new VBO for point coordinates
 // ----------------------------------------------------------------------------
 {
-    glGenBuffers(1, &vbo);
+    GL.GenBuffers(1, &vbo);
     IFTRACE(pointcloud)
         debug() << "Allocated VBO #" << vbo << " for point coordinates\n";
 }
@@ -380,7 +376,7 @@ void PointCloudVBO::genColorBuffer()
 // ----------------------------------------------------------------------------
 {
     Q_ASSERT(colored());
-    glGenBuffers(1, &colorVbo);
+    GL.GenBuffers(1, &colorVbo);
     IFTRACE(pointcloud)
         debug() << "Allocated VBO #" << colorVbo << " for colors\n";
 }
@@ -393,12 +389,12 @@ void PointCloudVBO::delBuffers()
 {
     IFTRACE(pointcloud)
         debug() << "Releasing VBO #" << vbo << "\n";
-    glDeleteBuffers(1, &vbo);
+    GL.DeleteBuffers(1, &vbo);
     if (colorVbo)
     {
         IFTRACE(pointcloud)
             debug() << "Releasing VBO #" << colorVbo << "\n";
-        glDeleteBuffers(1, &colorVbo);
+        GL.DeleteBuffers(1, &colorVbo);
     }
 }
 

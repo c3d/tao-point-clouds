@@ -24,6 +24,8 @@
 
 #include "thread_pool.h"
 #include "basics.h"  // From XLR
+#include "tao/tao_gl.h"
+#include "tao/module_api.h"
 #include <QString>
 #include <QRunnable>
 #include <QNetworkAccessManager>
@@ -31,7 +33,7 @@
 #include <vector>
 
 
-class PointCloud : public Runnable
+struct PointCloud : Runnable
 // ----------------------------------------------------------------------------
 //    Display a large number of points efficiently
 // ----------------------------------------------------------------------------

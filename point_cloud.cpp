@@ -23,6 +23,7 @@
 #include "point_cloud.h"
 #include "point_cloud_factory.h"
 #include "tao/tao_gl.h"
+#include "tao/graphic_state.h"
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
@@ -121,33 +122,33 @@ void PointCloud::draw()
     if (pointSize > 0)
     {
         glPushAttrib(GL_POINT_BIT);
-        glPointSize(pointSize * fact->tao->DevicePixelRatio());
+        GL.PointSize(pointSize * fact->tao->DevicePixelRatio());
     }
     if (pointSprites)
     {
-        glEnable(GL_POINT_SPRITE);
-        glTexEnvi(GL_POINT_SPRITE, GL_COORD_REPLACE, GL_TRUE);
-        glPointParameteri(GL_POINT_SPRITE_COORD_ORIGIN, GL_LOWER_LEFT);
+        GL.Enable(GL_POINT_SPRITE);
+        GL.TexEnv(GL_POINT_SPRITE, GL_COORD_REPLACE, GL_TRUE);
+        GL.PointParameter(GL_POINT_SPRITE_COORD_ORIGIN, GL_LOWER_LEFT);
         fact->tao->SetTextures();
     }
     if (pointProgrammableSize)
-        glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
+        GL.Enable(GL_VERTEX_PROGRAM_POINT_SIZE);
 
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glEnableClientState(GL_COLOR_ARRAY);
-    glVertexPointer(3, GL_FLOAT, sizeof(Point), &points[0].x);
-    glColorPointer(4, GL_FLOAT, sizeof(Color), &colors[0].r);
-    glDrawArrays(GL_POINTS, 0, size());
-    glDisableClientState(GL_VERTEX_ARRAY);
-    glDisableClientState(GL_COLOR_ARRAY);
+    GL.EnableClientState(GL_VERTEX_ARRAY);
+    GL.EnableClientState(GL_COLOR_ARRAY);
+    GL.VertexPointer(3, GL_FLOAT, sizeof(Point), &points[0].x);
+    GL.ColorPointer(4, GL_FLOAT, sizeof(Color), &colors[0].r);
+    GL.DrawArrays(GL_POINTS, 0, size());
+    GL.DisableClientState(GL_VERTEX_ARRAY);
+    GL.DisableClientState(GL_COLOR_ARRAY);
 
     if (pointProgrammableSize)
-        glDisable(GL_VERTEX_PROGRAM_POINT_SIZE);
+        GL.Disable(GL_VERTEX_PROGRAM_POINT_SIZE);
     if (pointSprites)
     {
-        glDisable(GL_POINT_SPRITE);
-        glTexEnvi(GL_POINT_SPRITE, GL_COORD_REPLACE, GL_FALSE);
-        glPointParameteri(GL_POINT_SPRITE_COORD_ORIGIN, GL_UPPER_LEFT);
+        GL.Disable(GL_POINT_SPRITE);
+        GL.TexEnv(GL_POINT_SPRITE, GL_COORD_REPLACE, GL_FALSE);
+        GL.PointParameter(GL_POINT_SPRITE_COORD_ORIGIN, GL_UPPER_LEFT);
     }
     if (pointSize > 0)
         glPopAttrib();
