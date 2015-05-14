@@ -153,7 +153,7 @@ public:
         {
             while (r)
             {
-                Q_ASSERT(pool->idleThreads > 0);
+                XL_ASSERT(pool->idleThreads > 0);
                 pool->idleThreads--;
                 locker.unlock();
                 r->runInternal();

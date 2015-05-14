@@ -1,3 +1,5 @@
+// This software is licensed under the GNU General Public License v3
+// See file COPYING for details.
 // ****************************************************************************
 //  point_cloud.cpp                                                Tao project
 // ****************************************************************************
@@ -65,7 +67,7 @@ unsigned PointCloud::size()
         return 0;
     if (colored())
     {
-        Q_ASSERT(points.size() == colors.size());
+        XL_ASSERT(points.size() == colors.size());
     }
     return points.size();
 }
@@ -78,7 +80,7 @@ bool PointCloud::addPoint(const Point &p, Color c)
 {
     if (c.isValid())
     {
-        Q_ASSERT(colored() || size() == 0);
+        XL_ASSERT(colored() || size() == 0);
         colors.push_back(c);
     }
     points.push_back(p);
@@ -223,7 +225,7 @@ bool PointCloud::loadData(text file, text sep, int xi, int yi, int zi,
     loadDataParm = LoadDataParm(file, sep, xi, yi, zi, colorScale,
                                 ri, gi, bi, ai);
 
-    Q_ASSERT(folder != "");
+    XL_ASSERT(folder != "");
     if (xi < 1 || yi < 1 || zi < 1)
     {
         error = "Invalid coordinate index value";

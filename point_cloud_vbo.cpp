@@ -82,7 +82,7 @@ void PointCloudVBO::removePoints(unsigned n)
 //   Drop n points from the cloud
 // ----------------------------------------------------------------------------
 {
-    Q_ASSERT(!optimized);
+    XL_ASSERT(!optimized);
 
     PointCloud::removePoints(n);
     if (useVbo())
@@ -278,7 +278,7 @@ void PointCloudVBO::checkGLContext()
             IFTRACE(pointcloud)
                 debug() << "GL context changed on optimized cloud\n";
 
-            Q_ASSERT(file != "" || nbRandom != 0);
+            XL_ASSERT(file != "" || nbRandom != 0);
 
             if (file != "")
             {
@@ -298,7 +298,7 @@ void PointCloudVBO::checkGLContext()
             }
 
             optimized = false;
-            Q_ASSERT(!dirty);
+            XL_ASSERT(!dirty);
         }
         else
             updateVbo();
@@ -322,7 +322,7 @@ void PointCloudVBO::updateVbo()
 //   Take into account a change in point data
 // ----------------------------------------------------------------------------
 {
-    Q_ASSERT(!optimized);
+    XL_ASSERT(!optimized);
 
     if (QThread::currentThread() != qApp->thread())
     {
@@ -375,7 +375,7 @@ void PointCloudVBO::genColorBuffer()
 //   Allocate new VBO for colors
 // ----------------------------------------------------------------------------
 {
-    Q_ASSERT(colored());
+    XL_ASSERT(colored());
     GL.GenBuffers(1, &colorVbo);
     IFTRACE(pointcloud)
         debug() << "Allocated VBO #" << colorVbo << " for colors\n";
