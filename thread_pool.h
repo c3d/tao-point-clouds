@@ -27,7 +27,7 @@
 #include <QRunnable>
 #include <QThread>
 #include <QWaitCondition>
-
+#include "base.h"
 
 class Runnable;
 class Thread;
